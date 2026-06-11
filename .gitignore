@@ -1,5 +1,18 @@
-data/raw/          # 용량이 너무 큼
-data/processed/    # 용량이 너무 큼
-outputs/models/    # .pth 파일 용량 큼
+# 가상환경
+.venv/
+venv/
+
+# 데이터 및 모델 (용량 큰 파일)
+data/raw/
+data/processed/
+data/augmented/
+outputs/models/
+
+# Python 캐시
 __pycache__/
 *.ipynb_checkpoints
+*.pyc
+*.ipynb_checkpoints/
+
+# 환경변수
+.env
