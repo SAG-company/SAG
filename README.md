@@ -40,6 +40,7 @@ AI Hub의 반려동물 피부 질환 데이터셋을 활용하여 7가지 증상
 
 ## 📁 프로젝트 구조
 
+```text
 pet_disease_cnn/
 ├── data/
 │   ├── raw/          # AI Hub 원본 (Git 제외)
@@ -61,6 +62,7 @@ pet_disease_cnn/
 │   ├── models/
 │   └── figures/
 └── README.md
+```
 
 ---
 
@@ -82,9 +84,11 @@ cd SAG
 data/raw/ 폴더에 AI Hub에서 다운받은 라벨링 데이터를 위치시킵니다.
 
 ### 2. EDA 및 전처리
+```text
 notebooks/01_data_collection.ipynb 실행
 notebooks/02_eda.ipynb 실행
 notebooks/03_preprocessing.ipynb 실행
+```
 
 ### 3. 모델 학습
 python src/train.py
