@@ -10,6 +10,7 @@ outputs/models/
 
 # Python 캐시
 __pycache__/
+*.ipynb_checkpoints
 *.pyc
 *.ipynb_checkpoints/
 
