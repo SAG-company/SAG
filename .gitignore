@@ -17,3 +17,7 @@ __pycache__/
 
 # 환경변수
 .env
+
+# 데이터 로드
+data/
+.data/
