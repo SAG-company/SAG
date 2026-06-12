@@ -27,7 +27,7 @@ def image_to_base64(path: str) -> str:
 inject_global_css()
 render_nav("Home")
 
-hero_base64 = image_to_base64("assets/hero_pet_skin.png")
+hero_base64 = image_to_base64("assets/app.png")
 
 if hero_base64:
     hero_background = (
