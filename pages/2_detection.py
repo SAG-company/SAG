@@ -7,7 +7,7 @@ from ui import inject_global_css, render_nav, render_page_hero
 
 
 st.set_page_config(
-    page_title="Detection | Pet Skin Intelligence",
+    page_title="Detection | AI 수의사",
     page_icon="🐾",
     layout="wide",
     initial_sidebar_state="collapsed",

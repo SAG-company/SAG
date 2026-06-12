@@ -4,7 +4,7 @@ from ui import inject_global_css, render_nav, render_page_hero
 
 
 st.set_page_config(
-    page_title="About | Pet Skin Intelligence",
+    page_title="About | AI 수의사",
     page_icon="ℹ️",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -17,7 +17,7 @@ render_page_hero(
     eyebrow="About the Platform",
     title="AI 기반 반려동물 피부 분석 플랫폼",
     subtitle=(
-        "Pet Skin Intelligence는 강아지와 고양이의 피부 사진에서 병변 유형과 이상 징후를 분석하고, "
+        "AI 수의사는 강아지와 고양이의 피부 사진에서 병변 유형과 이상 징후를 분석하고, "
         "보호자가 진료 필요도를 판단할 수 있도록 돕는 AI 기반 초기 선별 서비스입니다."
     ),
 )
