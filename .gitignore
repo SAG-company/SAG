@@ -4,6 +4,7 @@ venv/
 
 # 데이터 및 모델 (용량 큰 파일)
 data/raw/
+data/raw_sub/
 data/processed/
 data/augmented/
 outputs/models/
