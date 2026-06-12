@@ -2,154 +2,165 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import streamlit as st
 
+from ui import inject_global_css, render_nav, render_page_hero
+
 
 st.set_page_config(
-    page_title="Analysis | AI VET",
+    page_title="Data Analysis | Pet Skin Intelligence",
     page_icon="📁",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
 
+inject_global_css()
+render_nav("Data Analysis")
 
-st.html(
-    """
-<style>
-header, footer, #MainMenu {
-    visibility: hidden;
-}
-
-.block-container {
-    padding-top: 2.5rem;
-    padding-left: 4.5rem;
-    padding-right: 4.5rem;
-    max-width: 100%;
-}
-
-.page-title {
-    font-size: 52px;
-    font-weight: 700;
-    color: #111827;
-    margin-bottom: 12px;
-}
-
-.page-subtitle {
-    font-size: 18px;
-    line-height: 1.8;
-    color: #4B5563;
-    max-width: 940px;
-    margin-bottom: 40px;
-}
-
-.notice {
-    background: #EEF4FF;
-    border-left: 6px solid #13284B;
-    border-radius: 14px;
-    padding: 28px;
-    font-size: 16px;
-    line-height: 1.8;
-    color: #1F2937;
-    margin-top: 30px;
-}
-</style>
-
-<div class="page-title">Data Analysis</div>
-<div class="page-subtitle">
-    학습 데이터의 구성, 클래스별 분포, 정상/질환 비율, 데이터 편향 가능성을 확인합니다.
-    데이터 분석은 모델 신뢰도와 서비스 품질을 판단하는 핵심 근거입니다.
-</div>
-"""
+render_page_hero(
+    eyebrow="Dataset Intelligence",
+    title="데이터 분석",
+    subtitle=(
+        "학습 데이터의 구성, 클래스별 분포, 강아지/고양이 비율, 정상/질환 비율, "
+        "Train/Validation/Test 분포와 데이터 편향 가능성을 확인합니다."
+    ),
 )
 
+left_margin, content, right_margin = st.columns([0.06, 0.88, 0.06])
 
-col1, col2, col3, col4 = st.columns(4)
-
-col1.metric("전체 이미지 수", "12,480")
-col2.metric("강아지 이미지", "7,920")
-col3.metric("고양이 이미지", "4,560")
-col4.metric("질환 클래스 수", "8")
-
-st.markdown("---")
-
-left, right = st.columns(2, gap="large")
-
-with left:
-    st.subheader("클래스별 데이터 분포")
-
-    class_df = pd.DataFrame(
-        {
-            "Class": [
-                "Normal",
-                "Allergy",
-                "Fungal",
-                "Bacterial",
-                "Scabies",
-                "Hotspot",
-                "Alopecia",
-                "Wound",
-            ],
-            "Count": [3200, 2100, 1600, 1800, 900, 1100, 950, 830],
-        }
+with content:
+    st.html(
+        """
+<div class="metric-band">
+    <div class="metric-card">
+        <div class="metric-label">전체 이미지 수</div>
+        <div class="metric-value">34,987</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-label">강아지 이미지</div>
+        <div class="metric-value">31,003</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-label">고양이 이미지</div>
+        <div class="metric-value">3,984</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-label">클래스 수</div>
+        <div class="metric-value">7</div>
+    </div>
+</div>
+"""
     )
 
-    st.bar_chart(class_df.set_index("Class"))
+    left, right = st.columns(2, gap="large")
 
-with right:
-    st.subheader("강아지 / 고양이 비율")
+    with left:
+        st.html(
+            """
+<div class="card">
+    <div class="section-title">클래스별 데이터 분포</div>
+    <div class="section-desc">
+        A1~A7 병변 유형별 이미지 수를 확인합니다. 현재 전체 병변 클래스는 비교적 균형적으로 구성되어 있습니다.
+    </div>
+</div>
+<br>
+"""
+        )
 
-    animal_df = pd.DataFrame(
-        {
-            "Animal": ["Dog", "Cat"],
-            "Count": [7920, 4560],
-        }
-    )
+        class_df = pd.DataFrame(
+            {
+                "Class": ["A1", "A2", "A3", "A4", "A5", "A6", "A7"],
+                "Count": [4998, 4999, 4998, 4995, 5000, 4999, 4998],
+            }
+        )
 
-    fig, ax = plt.subplots(figsize=(6, 5))
-    ax.pie(
-        animal_df["Count"],
-        labels=animal_df["Animal"],
-        autopct="%1.1f%%",
-        startangle=90,
-    )
-    ax.axis("equal")
+        st.bar_chart(class_df.set_index("Class"))
 
-    st.pyplot(fig)
+    with right:
+        st.html(
+            """
+<div class="card">
+    <div class="section-title">강아지 / 고양이 비율</div>
+    <div class="section-desc">
+        전체 데이터 중 고양이 데이터는 상대적으로 적습니다. 이 점은 서비스 해석과 모델 평가에 반드시 반영해야 합니다.
+    </div>
+</div>
+<br>
+"""
+        )
 
-st.markdown("---")
+        animal_df = pd.DataFrame(
+            {
+                "Animal": ["Dog", "Cat"],
+                "Count": [31003, 3984],
+            }
+        )
 
-left2, right2 = st.columns(2, gap="large")
+        fig, ax = plt.subplots(figsize=(6, 5))
+        ax.pie(
+            animal_df["Count"],
+            labels=animal_df["Animal"],
+            autopct="%1.1f%%",
+            startangle=90,
+        )
+        ax.axis("equal")
+        st.pyplot(fig)
 
-with left2:
-    st.subheader("정상 / 질환 비율")
+    st.html("<br>")
 
-    status_df = pd.DataFrame(
-        {
-            "Status": ["Normal", "Abnormal"],
-            "Count": [3200, 9280],
-        }
-    )
+    left2, right2 = st.columns(2, gap="large")
 
-    st.bar_chart(status_df.set_index("Status"))
+    with left2:
+        st.html(
+            """
+<div class="card">
+    <div class="section-title">정상 / 질환 비율</div>
+    <div class="section-desc">
+        무증상 클래스 A7과 유증상 병변 클래스 A1~A6의 비율을 확인합니다.
+    </div>
+</div>
+<br>
+"""
+        )
 
-with right2:
-    st.subheader("Train / Validation / Test 분포")
+        status_df = pd.DataFrame(
+            {
+                "Status": ["Symptomatic", "Normal"],
+                "Count": [29989, 4998],
+            }
+        )
 
-    split_df = pd.DataFrame(
-        {
-            "Split": ["Train", "Validation", "Test"],
-            "Count": [8736, 1872, 1872],
-        }
-    )
+        st.bar_chart(status_df.set_index("Status"))
 
-    st.bar_chart(split_df.set_index("Split"))
+    with right2:
+        st.html(
+            """
+<div class="card">
+    <div class="section-title">Train / Validation / Test</div>
+    <div class="section-desc">
+        학습, 검증, 테스트 데이터가 약 70:15:15 비율로 나뉘어 있습니다.
+    </div>
+</div>
+<br>
+"""
+        )
 
-st.html(
-    """
-<div class="notice">
+        split_df = pd.DataFrame(
+            {
+                "Split": ["Train", "Validation", "Test"],
+                "Count": [24492, 5249, 5246],
+            }
+        )
+
+        st.bar_chart(split_df.set_index("Split"))
+
+    st.html(
+        """
+<div class="warning-notice">
     <strong>데이터 편향 및 한계</strong><br>
-    강아지 이미지가 고양이 이미지보다 많을 경우, 고양이 피부질환 분석 성능이 상대적으로 낮을 수 있습니다.
-    특정 질환 클래스의 데이터 수가 부족하면 해당 질환에 대한 Recall이 낮아질 수 있습니다.
-    촬영 조명, 털 길이, 피부색, 병변 위치, 이미지 해상도에 따라 모델 성능이 달라질 수 있습니다.
-    실제 서비스에서는 업로드 이미지 품질 검사를 추가하는 것이 필요합니다.
+    고양이 데이터는 전체 데이터 중 약 11.39%로 상대적으로 적습니다.
+    또한 일부 병변 클래스에는 고양이 샘플이 포함되어 있지 않아,
+    고양이 분석 결과는 병변 유형에 따라 신뢰도가 낮을 수 있습니다.
+    이 문제는 augmentation만으로 완전히 해결하기 어렵고,
+    고양이 원본 데이터 추가 수집이 필요합니다.
 </div>
 """
-)
+    )
