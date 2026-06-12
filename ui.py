@@ -1,5 +1,5 @@
 import streamlit as st
-print("import 완료")
+
 
 def inject_global_css() -> None:
     st.html(
@@ -20,10 +20,9 @@ header, footer, #MainMenu {
     background: #F7F8FA;
 }
 
-.page-wrap {
-    padding: 46px 70px 70px 70px;
-    font-family: Arial, sans-serif;
-}
+/* =========================
+   Top Navigation
+========================= */
 
 .top-nav {
     height: 78px;
@@ -88,11 +87,20 @@ header, footer, #MainMenu {
     font-size: 15px;
 }
 
+/* =========================
+   Page Hero
+========================= */
+
 .page-hero {
     background: linear-gradient(135deg, #08111F 0%, #13284B 100%);
     color: white;
-    padding: 70px 70px;
+    padding: 70px 0;
     font-family: Arial, sans-serif;
+}
+
+.page-hero-inner {
+    width: min(1280px, calc(100% - 64px));
+    margin: 0 auto;
 }
 
 .eyebrow {
@@ -119,6 +127,10 @@ header, footer, #MainMenu {
     color: rgba(255,255,255,0.78);
 }
 
+/* =========================
+   Cards / Sections
+========================= */
+
 .section-title {
     font-size: 34px;
     font-weight: 750;
@@ -141,6 +153,7 @@ header, footer, #MainMenu {
     border-radius: 24px;
     padding: 32px;
     box-shadow: 0 14px 34px rgba(17, 24, 39, 0.06);
+    box-sizing: border-box;
 }
 
 .dark-card {
@@ -149,6 +162,7 @@ header, footer, #MainMenu {
     border-radius: 24px;
     padding: 34px;
     box-shadow: 0 18px 42px rgba(19, 40, 75, 0.22);
+    box-sizing: border-box;
 }
 
 .grid-3 {
@@ -206,6 +220,10 @@ header, footer, #MainMenu {
     margin-top: 30px;
 }
 
+/* =========================
+   Metrics
+========================= */
+
 .metric-band {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -234,6 +252,106 @@ header, footer, #MainMenu {
     letter-spacing: -0.8px;
 }
 
+/* =========================
+   Home
+========================= */
+
+.home-hero {
+    min-height: 780px;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    font-family: Arial, sans-serif;
+}
+
+.home-hero-inner {
+    width: min(1280px, calc(100% - 64px));
+    margin: 0 auto;
+}
+
+.home-hero-text {
+    max-width: 570px;
+    color: white;
+}
+
+.home-title {
+    font-size: 76px;
+    font-weight: 750;
+    line-height: 1.12;
+    letter-spacing: -1.8px;
+    margin-bottom: 30px;
+    text-shadow: 0 4px 20px rgba(0,0,0,0.32);
+}
+
+.home-desc {
+    font-size: 22px;
+    line-height: 1.7;
+    margin-bottom: 36px;
+    text-shadow: 0 3px 14px rgba(0,0,0,0.35);
+}
+
+.btn-row {
+    display: flex;
+    gap: 20px;
+}
+
+.btn-primary {
+    padding: 17px 48px;
+    background: #13284B;
+    color: white !important;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.btn-secondary {
+    padding: 17px 48px;
+    border: 1px solid white;
+    color: white !important;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 700;
+    background: rgba(255,255,255,0.08);
+}
+
+.feature-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    background: white;
+    padding: 44px 54px;
+    border-bottom: 1px solid #E5E7EB;
+    font-family: Arial, sans-serif;
+}
+
+.feature {
+    padding: 0 34px;
+    border-right: 1px solid #E5E7EB;
+}
+
+.feature:last-child {
+    border-right: none;
+}
+
+.feature-title {
+    font-size: 21px;
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: 10px;
+}
+
+.feature-desc {
+    font-size: 15px;
+    color: #4B5563;
+    line-height: 1.65;
+}
+
+/* =========================
+   Responsive
+========================= */
+
 @media (max-width: 1100px) {
     .nav-links {
         display: none;
@@ -241,20 +359,37 @@ header, footer, #MainMenu {
 
     .grid-3,
     .grid-4,
-    .metric-band {
+    .metric-band,
+    .feature-strip {
         grid-template-columns: 1fr;
     }
 
-    .page-wrap {
-        padding: 34px 28px 58px 28px;
+    .feature {
+        border-right: none;
+        border-bottom: 1px solid #E5E7EB;
+        padding-bottom: 24px;
     }
 
-    .page-hero {
-        padding: 54px 28px;
+    .page-hero-inner,
+    .home-hero-inner {
+        width: min(100% - 40px, 1280px);
     }
 
     .page-title {
         font-size: 42px;
+    }
+
+    .home-title {
+        font-size: 48px;
+    }
+
+    .home-desc {
+        font-size: 18px;
+    }
+
+    .btn-row {
+        flex-direction: column;
+        align-items: flex-start;
     }
 }
 </style>
@@ -296,9 +431,11 @@ def render_page_hero(eyebrow: str, title: str, subtitle: str) -> None:
     st.html(
         f"""
 <section class="page-hero">
-    <div class="eyebrow">{eyebrow}</div>
-    <div class="page-title">{title}</div>
-    <div class="page-subtitle">{subtitle}</div>
+    <div class="page-hero-inner">
+        <div class="eyebrow">{eyebrow}</div>
+        <div class="page-title">{title}</div>
+        <div class="page-subtitle">{subtitle}</div>
+    </div>
 </section>
 """
     )

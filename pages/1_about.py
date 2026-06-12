@@ -1,4 +1,5 @@
 import streamlit as st
+
 from ui import inject_global_css, render_nav, render_page_hero
 
 
@@ -21,10 +22,11 @@ render_page_hero(
     ),
 )
 
-st.html('<main class="page-wrap">')
+left_margin, content, right_margin = st.columns([0.06, 0.88, 0.06])
 
-st.html(
-    """
+with content:
+    st.html(
+        """
 <div class="card">
     <div class="section-title">서비스 목적</div>
     <div class="section-desc">
@@ -77,6 +79,4 @@ st.html(
     급격한 탈모, 식욕 저하, 통증 반응이 있는 경우 반드시 동물병원 진료를 권장합니다.
 </div>
 """
-)
-
-st.html("</main>")
+    )

@@ -24,10 +24,11 @@ render_page_hero(
     ),
 )
 
-st.html('<main class="page-wrap">')
+left_margin, content, right_margin = st.columns([0.06, 0.88, 0.06])
 
-st.html(
-    """
+with content:
+    st.html(
+        """
 <div class="metric-band">
     <div class="metric-card">
         <div class="metric-label">전체 이미지 수</div>
@@ -47,13 +48,13 @@ st.html(
     </div>
 </div>
 """
-)
+    )
 
-left, right = st.columns(2, gap="large")
+    left, right = st.columns(2, gap="large")
 
-with left:
-    st.html(
-        """
+    with left:
+        st.html(
+            """
 <div class="card">
     <div class="section-title">클래스별 데이터 분포</div>
     <div class="section-desc">
@@ -62,20 +63,20 @@ with left:
 </div>
 <br>
 """
-    )
+        )
 
-    class_df = pd.DataFrame(
-        {
-            "Class": ["A1", "A2", "A3", "A4", "A5", "A6", "A7"],
-            "Count": [4998, 4999, 4998, 4995, 5000, 4999, 4998],
-        }
-    )
+        class_df = pd.DataFrame(
+            {
+                "Class": ["A1", "A2", "A3", "A4", "A5", "A6", "A7"],
+                "Count": [4998, 4999, 4998, 4995, 5000, 4999, 4998],
+            }
+        )
 
-    st.bar_chart(class_df.set_index("Class"))
+        st.bar_chart(class_df.set_index("Class"))
 
-with right:
-    st.html(
-        """
+    with right:
+        st.html(
+            """
 <div class="card">
     <div class="section-title">강아지 / 고양이 비율</div>
     <div class="section-desc">
@@ -84,32 +85,32 @@ with right:
 </div>
 <br>
 """
-    )
+        )
 
-    animal_df = pd.DataFrame(
-        {
-            "Animal": ["Dog", "Cat"],
-            "Count": [31003, 3984],
-        }
-    )
+        animal_df = pd.DataFrame(
+            {
+                "Animal": ["Dog", "Cat"],
+                "Count": [31003, 3984],
+            }
+        )
 
-    fig, ax = plt.subplots(figsize=(6, 5))
-    ax.pie(
-        animal_df["Count"],
-        labels=animal_df["Animal"],
-        autopct="%1.1f%%",
-        startangle=90,
-    )
-    ax.axis("equal")
-    st.pyplot(fig)
+        fig, ax = plt.subplots(figsize=(6, 5))
+        ax.pie(
+            animal_df["Count"],
+            labels=animal_df["Animal"],
+            autopct="%1.1f%%",
+            startangle=90,
+        )
+        ax.axis("equal")
+        st.pyplot(fig)
 
-st.html("<br>")
+    st.html("<br>")
 
-left2, right2 = st.columns(2, gap="large")
+    left2, right2 = st.columns(2, gap="large")
 
-with left2:
-    st.html(
-        """
+    with left2:
+        st.html(
+            """
 <div class="card">
     <div class="section-title">정상 / 질환 비율</div>
     <div class="section-desc">
@@ -118,20 +119,20 @@ with left2:
 </div>
 <br>
 """
-    )
+        )
 
-    status_df = pd.DataFrame(
-        {
-            "Status": ["Symptomatic", "Normal"],
-            "Count": [29989, 4998],
-        }
-    )
+        status_df = pd.DataFrame(
+            {
+                "Status": ["Symptomatic", "Normal"],
+                "Count": [29989, 4998],
+            }
+        )
 
-    st.bar_chart(status_df.set_index("Status"))
+        st.bar_chart(status_df.set_index("Status"))
 
-with right2:
-    st.html(
-        """
+    with right2:
+        st.html(
+            """
 <div class="card">
     <div class="section-title">Train / Validation / Test</div>
     <div class="section-desc">
@@ -140,19 +141,19 @@ with right2:
 </div>
 <br>
 """
-    )
+        )
 
-    split_df = pd.DataFrame(
-        {
-            "Split": ["Train", "Validation", "Test"],
-            "Count": [24492, 5249, 5246],
-        }
-    )
+        split_df = pd.DataFrame(
+            {
+                "Split": ["Train", "Validation", "Test"],
+                "Count": [24492, 5249, 5246],
+            }
+        )
 
-    st.bar_chart(split_df.set_index("Split"))
+        st.bar_chart(split_df.set_index("Split"))
 
-st.html(
-    """
+    st.html(
+        """
 <div class="warning-notice">
     <strong>데이터 편향 및 한계</strong><br>
     고양이 데이터는 전체 데이터 중 약 11.39%로 상대적으로 적습니다.
@@ -161,6 +162,5 @@ st.html(
     이 문제는 augmentation만으로 완전히 해결하기 어렵고,
     고양이 원본 데이터 추가 수집이 필요합니다.
 </div>
-</main>
 """
-)
+    )
