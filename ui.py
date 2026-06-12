@@ -1,4 +1,17 @@
+import base64
+from pathlib import Path
+
 import streamlit as st
+
+
+def image_to_base64(path: str) -> str:
+    image_path = Path(path)
+
+    if not image_path.exists():
+        return ""
+
+    with open(image_path, "rb") as file:
+        return base64.b64encode(file.read()).decode()
 
 
 def inject_global_css() -> None:
@@ -25,7 +38,7 @@ header, footer, #MainMenu {
 ========================= */
 
 .top-nav {
-    height: 78px;
+    height: 82px;
     background: rgba(255, 255, 255, 0.97);
     display: flex;
     align-items: center;
@@ -44,6 +57,14 @@ header, footer, #MainMenu {
     align-items: center;
     gap: 14px;
     color: #0B1633;
+    min-width: 180px;
+}
+
+.brand-logo {
+    height: 52px;
+    width: auto;
+    object-fit: contain;
+    display: block;
 }
 
 .logo-dot {
@@ -357,6 +378,10 @@ header, footer, #MainMenu {
         display: none;
     }
 
+    .nav-right {
+        display: none;
+    }
+
     .grid-3,
     .grid-4,
     .metric-band,
@@ -391,6 +416,10 @@ header, footer, #MainMenu {
         flex-direction: column;
         align-items: flex-start;
     }
+
+    .brand-logo {
+        height: 44px;
+    }
 }
 </style>
 """
@@ -401,12 +430,25 @@ def render_nav(active: str) -> None:
     def active_class(name: str) -> str:
         return "active" if active == name else ""
 
+    logo_base64 = image_to_base64("assets/sag_logo.png")
+
+    if logo_base64:
+        logo_html = (
+            f'<img class="brand-logo" '
+            f'src="data:image/png;base64,{logo_base64}" '
+            f'alt="SAG Logo">'
+        )
+    else:
+        logo_html = """
+        <div class="logo-dot"></div>
+        <div class="brand-text">SAG</div>
+        """
+
     st.html(
         f"""
 <div class="top-nav">
     <div class="brand">
-        <div class="logo-dot"></div>
-        <div class="brand-text">Pet Skin<br>Intelligence</div>
+        {logo_html}
     </div>
 
     <div class="nav-links">
