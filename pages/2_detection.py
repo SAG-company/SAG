@@ -3,74 +3,46 @@ import random
 import streamlit as st
 from PIL import Image
 
+from ui import inject_global_css, render_nav, render_page_hero
+
 
 st.set_page_config(
-    page_title="Detection | AI VET",
+    page_title="Detection | Pet Skin Intelligence",
     page_icon="🐾",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
 
+inject_global_css()
+render_nav("Detection")
 
-st.html(
-    """
-<style>
-header, footer, #MainMenu {
-    visibility: hidden;
-}
-
-.block-container {
-    padding-top: 2.5rem;
-    padding-left: 4.5rem;
-    padding-right: 4.5rem;
-    max-width: 100%;
-}
-
-.page-title {
-    font-size: 52px;
-    font-weight: 700;
-    color: #111827;
-    margin-bottom: 12px;
-}
-
-.page-subtitle {
-    font-size: 18px;
-    line-height: 1.8;
-    color: #4B5563;
-    max-width: 940px;
-    margin-bottom: 40px;
-}
-
-.notice {
-    background: #EEF4FF;
-    border-left: 6px solid #13284B;
-    border-radius: 14px;
-    padding: 26px;
-    font-size: 16px;
-    line-height: 1.8;
-    color: #1F2937;
-    margin-top: 30px;
-}
-</style>
-
-<div class="page-title">Skin Detection</div>
-<div class="page-subtitle">
-    강아지 또는 고양이의 피부 사진을 업로드하고 AI 분석 결과를 확인합니다.
-    결과는 위험도, 예측 후보, 신뢰도, 보호자 행동 가이드로 구성됩니다.
-</div>
-"""
+render_page_hero(
+    eyebrow="AI Skin Detection",
+    title="피부 이미지 분석",
+    subtitle=(
+        "강아지 또는 고양이의 피부 사진을 업로드하면 AI가 병변 유형, 정상 가능성, "
+        "위험도와 보호자 행동 가이드를 제공합니다."
+    ),
 )
 
+st.html('<main class="page-wrap">')
 
 left, right = st.columns([1, 1.15], gap="large")
 
 with left:
-    st.subheader("Analysis Input")
-
-    animal = st.selectbox(
-        "동물 선택",
-        ["강아지", "고양이"],
+    st.html(
+        """
+<div class="card">
+    <div class="section-title">Analysis Input</div>
+    <div class="section-desc">
+        분석 정확도를 위해 피부 부위가 선명하게 보이는 사진을 업로드하세요.
+    </div>
+</div>
+<br>
+"""
     )
+
+    animal = st.selectbox("동물 선택", ["강아지", "고양이"])
 
     body_part = st.selectbox(
         "부위 선택",
@@ -98,7 +70,18 @@ with left:
     )
 
 with right:
-    st.subheader("AI Analysis Result")
+    st.html(
+        """
+<div class="dark-card">
+    <div class="section-title" style="color:white;">AI Analysis Result</div>
+    <div class="mini-text">
+        입력된 이미지와 증상 정보를 기반으로 AI 분석 결과가 표시됩니다.
+        결과는 병변 유형 후보, 위험도, 신뢰도, 행동 가이드로 구성됩니다.
+    </div>
+</div>
+<br>
+"""
+    )
 
     if analyze_button and uploaded_file is not None:
         risk_level = random.choice(
@@ -115,12 +98,12 @@ with right:
         else:
             st.success(f"위험도: {risk_level}")
 
-        st.markdown("### Possible Patterns")
+        st.markdown("### 예측 병변 유형")
 
         candidates = [
-            ("알레르기성 피부염 가능성", 0.42),
-            ("곰팡이성 피부질환 가능성", 0.31),
-            ("세균성 피부염 가능성", 0.18),
+            ("A2 비듬/각질 가능성", 0.42),
+            ("A3 태선화/색소 가능성", 0.31),
+            ("A7 무증상/정상 가능성", 0.18),
         ]
 
         for name, score in candidates:
@@ -131,7 +114,6 @@ with right:
         st.metric("분석 신뢰도", confidence)
 
         st.markdown("### 보호자 행동 가이드")
-
         st.write(
             """
             - 증상이 2~3일 이상 지속되면 동물병원 상담을 권장합니다.
@@ -141,17 +123,23 @@ with right:
             """
         )
 
+        if animal == "고양이":
+            st.warning(
+                "고양이 데이터는 강아지 데이터보다 상대적으로 적어 일부 병변 유형의 분석 신뢰도가 낮을 수 있습니다."
+            )
+
     elif analyze_button and uploaded_file is None:
         st.warning("분석할 피부 사진을 먼저 업로드해주세요.")
     else:
         st.info("왼쪽에서 분석 정보를 입력하고 이미지를 업로드하면 분석 결과가 표시됩니다.")
 
-
 st.html(
     """
 <div class="notice">
     <strong>Medical Notice</strong><br>
-    AI 분석 결과는 참고용입니다. 정확한 진단과 치료는 수의사의 진료가 필요합니다.
+    본 결과는 질병명 확정 진단이 아니라 이미지 기반 병변 유형 분석입니다.
+    정확한 원인 진단과 치료는 수의사의 진료가 필요합니다.
 </div>
+</main>
 """
 )
