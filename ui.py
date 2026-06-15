@@ -605,10 +605,10 @@ def render_nav(active: str) -> None:
 
     <div class="nav-links">
         <a class="{active_class('Home')}" href="/" target="_self">Home</a>
-        <a class="{active_class('About')}" href="/About" target="_self">About</a>
-        <a class="{active_class('Detection')}" href="/Detection" target="_self">Detection</a>
-        <a class="{active_class('Model Performance')}" href="/Model_Performance" target="_self">Model Performance</a>
-        <a class="{active_class('Data Analysis')}" href="/Data_Analysis" target="_self">Data Analysis</a>
+        <a class="{active_class('About')}" href="/about" target="_self">About</a>
+        <a class="{active_class('Detection')}" href="/detection" target="_self">Detection</a>
+        <a class="{active_class('Model Performance')}" href="/model_performance" target="_self">Model Performance</a>
+        <a class="{active_class('Data Analysis')}" href="/data_analysis" target="_self">Data Analysis</a>
     </div>
 
     <div class="nav-right">
