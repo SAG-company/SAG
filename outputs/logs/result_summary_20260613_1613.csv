@@ -1,0 +1,2 @@
+timestamp,env,base_model,normalization,phase1_best_val_acc,phase1_time_min,phase2_best_val_acc,phase2_time_min,test_acc,test_top3_acc,test_loss,target_achieved
+20260613_1613,Colab GPU,EfficientNetB3,EDA custom (domain-specific),0.434939980506897,108.4,0.5848733186721802,158.8,0.5731986165046692,0.8515059351921082,1.4254366159439087,False
