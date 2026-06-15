@@ -585,16 +585,9 @@ def render_nav(active: str) -> None:
     logo_base64 = image_to_base64("assets/sag_logo.png")
 
     if logo_base64:
-        logo_html = (
-            f'<img class="brand-logo" '
-            f'src="data:image/png;base64,{logo_base64}" '
-            f'alt="SAG Logo">'
-        )
+        logo_html = f'<img class="brand-logo" src="data:image/png;base64,{logo_base64}" alt="sag_logo">'
     else:
-        logo_html = """
-        <div class="logo-dot"></div>
-        <div class="brand-text">SAG</div>
-        """
+        logo_html = '<div class="logo-dot"></div>'
 
     st.html(
         f"""
@@ -609,11 +602,6 @@ def render_nav(active: str) -> None:
         <a class="{active_class('Detection')}" href="/detection" target="_self">Detection</a>
         <a class="{active_class('Model Performance')}" href="/model_performance" target="_self">Model Performance</a>
         <a class="{active_class('Data Analysis')}" href="/data_analysis" target="_self">Data Analysis</a>
-    </div>
-
-    <div class="nav-right">
-        <span>Search</span>
-        <a class="login-btn" href="#" target="_self">Client Login</a>
     </div>
 </div>
 """
