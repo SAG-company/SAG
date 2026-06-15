@@ -4,7 +4,6 @@ venv/
 
 # 데이터 및 모델 (용량 큰 파일)
 data/raw/
-data/raw_sub/
 data/processed/
 data/augmented/
 outputs/models/
@@ -17,10 +16,3 @@ __pycache__/
 
 # 환경변수
 .env
-
-# 데이터 로드
-data/
-.data/venv/
-.venv/
-__pycache__/
-*.pyc
