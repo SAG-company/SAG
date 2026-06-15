@@ -1,5 +1,6 @@
-import matplotlib.pyplot as plt
-import numpy as np
+import json
+from pathlib import Path
+
 import pandas as pd
 import streamlit as st
 
@@ -25,31 +26,75 @@ render_page_hero(
     ),
 )
 
+
+# =========================================================
+# 산출물 로드 (없으면 graceful fallback)
+# =========================================================
+
+BASE = Path(__file__).resolve().parent.parent
+FIG_DIR = BASE / "outputs" / "figures"
+METRICS_FILE = BASE / "outputs" / "metrics.json"
+
+
+def load_metrics() -> dict:
+    """학습 결과 metrics.json이 있으면 읽고, 없으면 빈 dict."""
+    if METRICS_FILE.exists():
+        with open(METRICS_FILE, encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
+
+def show_figure(filename: str, caption: str) -> None:
+    """outputs/figures의 이미지를 있으면 표시, 없으면 안내."""
+    path = FIG_DIR / filename
+    if path.exists():
+        st.image(str(path), caption=caption, use_container_width=True)
+    else:
+        st.info(f"`{filename}` 산출물이 아직 없습니다. 학습 완료 후 자동 표시됩니다.")
+
+
+metrics = load_metrics()
+
+
 left_margin, content, right_margin = st.columns([0.06, 0.88, 0.06])
 
 with content:
+    # ---------- 핵심 지표 밴드 ----------
+    def metric_value(key: str) -> str:
+        """metrics.json에 값이 있으면 %로, 없으면 '학습 중'."""
+        if key in metrics:
+            return f"{metrics[key] * 100:.1f}%"
+        return "학습 중"
+
     st.html(
-        """
+        f"""
 <div class="metric-band">
     <div class="metric-card">
         <div class="metric-label">Accuracy</div>
-        <div class="metric-value">91.2%</div>
+        <div class="metric-value">{metric_value('accuracy')}</div>
     </div>
     <div class="metric-card">
         <div class="metric-label">Precision</div>
-        <div class="metric-value">89.7%</div>
+        <div class="metric-value">{metric_value('precision')}</div>
     </div>
     <div class="metric-card">
         <div class="metric-label">Recall</div>
-        <div class="metric-value">88.4%</div>
+        <div class="metric-value">{metric_value('recall')}</div>
     </div>
     <div class="metric-card">
         <div class="metric-label">F1-score</div>
-        <div class="metric-value">89.0%</div>
+        <div class="metric-value">{metric_value('f1')}</div>
     </div>
 </div>
 """
     )
+
+    if not metrics:
+        st.info(
+            "현재 표시되는 도표는 **실험 1(Baseline CNN)**의 산출물입니다. "
+            "최종 모델(MobileNetV3) 학습이 끝나면 `outputs/metrics.json`을 통해 "
+            "지표가 자동으로 채워집니다."
+        )
 
     left, right = st.columns(2, gap="large")
 
@@ -65,70 +110,11 @@ with content:
 <br>
 """
         )
-
-        matrix = np.array(
-            [
-                [120, 8, 5, 3],
-                [10, 95, 7, 6],
-                [6, 9, 88, 10],
-                [4, 5, 8, 102],
-            ]
-        )
-
-        classes = ["Normal", "Scale", "Pigment", "Mass"]
-
-        fig, ax = plt.subplots(figsize=(6, 5))
-        ax.imshow(matrix)
-
-        ax.set_xticks(range(len(classes)))
-        ax.set_yticks(range(len(classes)))
-        ax.set_xticklabels(classes, rotation=35, ha="right")
-        ax.set_yticklabels(classes)
-
-        for i in range(len(classes)):
-            for j in range(len(classes)):
-                ax.text(j, i, matrix[i, j], ha="center", va="center")
-
-        ax.set_xlabel("Predicted")
-        ax.set_ylabel("Actual")
-        st.pyplot(fig)
+        show_figure("exp1_confusion_matrix.png", "실험 1 혼동 행렬")
 
     with right:
         st.html(
             """
-<div class="card">
-    <div class="section-title">Class-wise Performance</div>
-    <div class="section-desc">
-        병변 유형별 Precision, Recall, F1-score를 비교합니다.
-    </div>
-</div>
-<br>
-"""
-        )
-
-        performance_df = pd.DataFrame(
-            {
-                "Class": ["A1 Papule", "A2 Scale", "A3 Pigment", "A7 Normal"],
-                "Precision": [0.92, 0.88, 0.86, 0.91],
-                "Recall": [0.94, 0.84, 0.81, 0.89],
-                "F1-score": [0.93, 0.86, 0.83, 0.90],
-            }
-        )
-
-        st.dataframe(performance_df, use_container_width=True)
-
-        fig2, ax2 = plt.subplots(figsize=(6, 5))
-        ax2.plot(performance_df["Class"], performance_df["Precision"], marker="o", label="Precision")
-        ax2.plot(performance_df["Class"], performance_df["Recall"], marker="o", label="Recall")
-        ax2.plot(performance_df["Class"], performance_df["F1-score"], marker="o", label="F1-score")
-        ax2.set_ylim(0, 1)
-        ax2.set_ylabel("Score")
-        ax2.legend()
-        st.pyplot(fig2)
-
-    st.html(
-        """
-<br>
 <div class="card">
     <div class="section-title">Loss / Accuracy Curve</div>
     <div class="section-desc">
@@ -138,21 +124,29 @@ with content:
 </div>
 <br>
 """
+        )
+        show_figure("exp1_learning_curve.png", "실험 1 학습 곡선")
+
+    # ---------- 클래스별 성능 표 ----------
+    st.html(
+        """
+<br>
+<div class="card">
+    <div class="section-title">Class-wise Performance</div>
+    <div class="section-desc">
+        병변 유형별 Precision, Recall, F1-score를 비교합니다.
+    </div>
+</div>
+<br>
+"""
     )
 
-    epochs = list(range(1, 11))
-    curve_df = pd.DataFrame(
-        {
-            "Epoch": epochs,
-            "Train Accuracy": [0.62, 0.71, 0.78, 0.82, 0.86, 0.88, 0.90, 0.91, 0.92, 0.93],
-            "Validation Accuracy": [0.60, 0.68, 0.73, 0.78, 0.81, 0.83, 0.85, 0.87, 0.88, 0.89],
-            "Train Loss": [1.20, 0.96, 0.78, 0.64, 0.52, 0.44, 0.38, 0.33, 0.30, 0.27],
-            "Validation Loss": [1.26, 1.05, 0.91, 0.76, 0.66, 0.58, 0.51, 0.47, 0.43, 0.40],
-        }
-    )
-
-    st.line_chart(curve_df.set_index("Epoch")[["Train Accuracy", "Validation Accuracy"]])
-    st.line_chart(curve_df.set_index("Epoch")[["Train Loss", "Validation Loss"]])
+    if "class_report" in metrics:
+        # metrics.json 안에 classification_report(dict)가 있으면 표로 변환
+        report_df = pd.DataFrame(metrics["class_report"]).T
+        st.dataframe(report_df, use_container_width=True)
+    else:
+        st.info("클래스별 지표는 최종 모델 평가(classification_report) 후 표시됩니다.")
 
     st.html(
         """
