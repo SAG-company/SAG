@@ -9,3 +9,5 @@ streamlit
 ultralytics    # YOLOv8 (병변 탐지용)
 Pillow
 tqdm
+plotly
+tensorflow
