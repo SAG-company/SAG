@@ -1,0 +1,133 @@
+import base64
+from pathlib import Path
+
+import streamlit as st
+
+from ui import inject_global_css, render_nav
+
+
+st.set_page_config(
+    page_title="AI 수의사",
+    page_icon="🐾",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
+
+
+def image_to_base64(path: str) -> str:
+    image_path = Path(path)
+
+    if not image_path.exists():
+        return ""
+
+    with open(image_path, "rb") as file:
+        return base64.b64encode(file.read()).decode()
+
+
+inject_global_css()
+render_nav("Home")
+
+hero_base64 = image_to_base64("assets/app.png")
+
+if hero_base64:
+    hero_background = (
+        "linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.08)), "
+        f"url('data:image/png;base64,{hero_base64}')"
+    )
+else:
+    hero_background = "linear-gradient(120deg, #001E62, #0a47ed)"
+
+
+st.html(
+    f"""
+<section class="home-hero" style="background-image: {hero_background};">
+    <div class="home-hero-inner">
+        <div class="home-hero-text">
+            <div class="home-title">AI 수의사</div>
+            <div class="home-desc">
+                강아지와 고양이의 피부 사진을 기반으로<br>
+                AI가 피부 이상 징후와 가능한 병변 유형,<br>
+                진료 필요도를 분석합니다.
+            </div>
+
+            <div class="btn-row">
+                <a class="btn-primary" href="/Detection" target="_self">분석 시작하기</a>
+                <a class="btn-secondary" href="/About" target="_self">서비스 소개</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="feature-strip">
+    <div class="feature">
+        <div class="feature-title">피부 이미지 분석</div>
+        <div class="feature-desc">
+            강아지와 고양이의 피부 이미지를 업로드하고 AI 분석 결과를 확인합니다.
+        </div>
+    </div>
+
+    <div class="feature">
+        <div class="feature-title">위험도 안내</div>
+        <div class="feature-desc">
+            정상 가능성, 관찰 필요, 진료 권장, 빠른 진료 권장으로 분류합니다.
+        </div>
+    </div>
+
+    <div class="feature">
+        <div class="feature-title">모델 투명성</div>
+        <div class="feature-desc">
+            Accuracy, Precision, Recall, F1-score 등 주요 성능 지표를 제공합니다.
+        </div>
+    </div>
+
+    <div class="feature">
+        <div class="feature-title">데이터 분석</div>
+        <div class="feature-desc">
+            데이터 분포와 편향을 분석하여 서비스 신뢰도를 높입니다.
+        </div>
+    </div>
+</section>
+"""
+)
+
+
+# 사용법 + 팀 정보
+st.html(
+    """
+<section style="width:min(1280px, calc(100% - 64px)); margin:64px auto;">
+    <div class="section-title">사용 방법</div>
+    <div class="grid-3">
+        <div class="card">
+            <div class="mini-title">1. 사진 준비</div>
+            <div class="mini-text">강아지·고양이의 피부 부위가 선명하게 보이는 사진을 준비합니다.</div>
+        </div>
+        <div class="card">
+            <div class="mini-title">2. 업로드 / 촬영</div>
+            <div class="mini-text">Detection 페이지에서 사진을 업로드하거나 카메라로 촬영합니다.</div>
+        </div>
+        <div class="card">
+            <div class="mini-title">3. 결과 확인</div>
+            <div class="mini-text">병변 유형, 위험도, 신뢰도와 보호자 행동 가이드를 확인합니다.</div>
+        </div>
+    </div>
+
+    <br><br>
+
+    <div class="section-title">팀 SAG</div>
+    <div class="grid-3">
+        <div class="card">
+            <div class="mini-title">데이터 · EDA</div>
+            <div class="mini-text">데이터 수집, 품질 필터링, 층화 샘플링, 탐색적 데이터 분석을 담당합니다.</div>
+        </div>
+        <div class="card">
+            <div class="mini-title">모델링</div>
+            <div class="mini-text">CNN · Transfer Learning 기반 피부 질환 분류 모델을 설계하고 학습합니다.</div>
+        </div>
+        <div class="card">
+            <div class="mini-title">서비스 · 프론트엔드</div>
+            <div class="mini-text">Streamlit 기반 분석 서비스와 결과 시각화 화면을 구축합니다.</div>
+        </div>
+    </div>
+</section>
+"""
+)
