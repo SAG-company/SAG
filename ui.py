@@ -396,7 +396,7 @@ html, body, [class*="css"] {
     width: min(1280px, calc(100% - 64px));
     margin: 0 auto;
     position: relative;
-    z-index: 1;
+    z-index: 2;
 }
 
 .home-hero-text {
