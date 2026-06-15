@@ -1,8 +1,15 @@
-import random
-
+import numpy as np
+import plotly.graph_objects as go
 import streamlit as st
 from PIL import Image
 
+from inference import (
+    LESION_MAP,
+    CLASS_ORDER,
+    predict,
+    gradcam,
+    risk_score,
+)
 from ui import inject_global_css, render_nav, render_page_hero
 
 
@@ -24,6 +31,79 @@ render_page_hero(
         "위험도와 보호자 행동 가이드를 제공합니다."
     ),
 )
+
+
+# =========================================================
+# 시각화 헬퍼
+# =========================================================
+
+def probability_bar_chart(probs: dict) -> go.Figure:
+    """7개 클래스 예측 확률을 수평 막대로 표시 (확률 오름차순 → 위로 갈수록 높음)."""
+    items = [(f"{c} {LESION_MAP[c]}", probs[c]) for c in CLASS_ORDER]
+    items.sort(key=lambda kv: kv[1])  # 오름차순 정렬
+
+    labels = [name for name, _ in items]
+    values = [v * 100 for _, v in items]
+
+    fig = go.Figure(
+        go.Bar(
+            x=values,
+            y=labels,
+            orientation="h",
+            text=[f"{v:.1f}%" for v in values],
+            textposition="outside",
+            marker_color="#13284B",
+        )
+    )
+    fig.update_layout(
+        height=360,
+        margin=dict(l=10, r=30, t=10, b=10),
+        xaxis_title="가능성 (%)",
+        xaxis_range=[0, max(values) * 1.18 if values else 100],
+        plot_bgcolor="white",
+    )
+    return fig
+
+
+def risk_gauge(risk: str) -> go.Figure:
+    """위험도 4단계를 0~100 게이지로 표시 (go.Indicator)."""
+    score = risk_score(risk)
+
+    fig = go.Figure(
+        go.Indicator(
+            mode="gauge+number",
+            value=score,
+            number={"suffix": " 점"},
+            title={"text": f"위험도: {risk}"},
+            gauge={
+                "axis": {"range": [0, 100]},
+                "bar": {"color": "#13284B"},
+                "steps": [
+                    {"range": [0, 25], "color": "#D1FAE5"},   # 정상
+                    {"range": [25, 55], "color": "#FEF3C7"},  # 관찰
+                    {"range": [55, 80], "color": "#FED7AA"},  # 진료
+                    {"range": [80, 100], "color": "#FECACA"},  # 빠른 진료
+                ],
+            },
+        )
+    )
+    fig.update_layout(height=300, margin=dict(l=20, r=20, t=50, b=10))
+    return fig
+
+
+def gradcam_overlay(image: Image.Image, cam: np.ndarray) -> Image.Image:
+    """원본 이미지 위에 Grad-CAM 히트맵을 반투명으로 겹친 이미지를 만든다."""
+    import matplotlib.cm as cm
+
+    base = image.convert("RGB")
+    heat = Image.fromarray(np.uint8(cm.jet(cam) * 255)).convert("RGB")
+    heat = heat.resize(base.size)
+    return Image.blend(base, heat, alpha=0.45)
+
+
+# =========================================================
+# 레이아웃
+# =========================================================
 
 left_margin, content, right_margin = st.columns([0.06, 0.88, 0.06])
 
@@ -55,14 +135,25 @@ with content:
             ["붉어짐", "탈모", "각질", "딱지", "진물", "가려움", "냄새", "발 핥음", "통증"],
         )
 
-        uploaded_file = st.file_uploader(
-            "피부 사진 업로드",
-            type=["jpg", "jpeg", "png"],
+        # 입력 방식: 파일 업로드 또는 카메라 촬영
+        input_mode = st.radio(
+            "입력 방식",
+            ["파일 업로드", "카메라 촬영"],
+            horizontal=True,
         )
 
-        if uploaded_file is not None:
-            image = Image.open(uploaded_file)
-            st.image(image, caption="Uploaded Image", use_container_width=True)
+        if input_mode == "파일 업로드":
+            image_source = st.file_uploader(
+                "피부 사진 업로드",
+                type=["jpg", "jpeg", "png"],
+            )
+        else:
+            image_source = st.camera_input("피부 사진 촬영")
+
+        # 원본 미리보기
+        if image_source is not None:
+            preview = Image.open(image_source)
+            st.image(preview, caption="입력 이미지", use_container_width=True)
 
         analyze_button = st.button(
             "RUN AI ANALYSIS",
@@ -84,36 +175,53 @@ with content:
 """
         )
 
-        if analyze_button and uploaded_file is not None:
-            risk_level = random.choice(
-                ["정상 가능성 높음", "관찰 필요", "진료 권장", "빠른 진료 권장"]
+        if analyze_button and image_source is not None:
+            image = Image.open(image_source)
+            result = predict(image)
+
+            if not result["available"]:
+                st.warning(
+                    "현재 학습된 모델이 연결되지 않아 예시(더미) 결과를 표시합니다. "
+                    "모델 파일이 준비되면 자동으로 실제 분석으로 전환됩니다."
+                )
+
+            # 질환명 대형 표시 + 신뢰도 %
+            metric_left, metric_right = st.columns(2)
+            metric_left.metric(
+                "예측 병변 유형",
+                f"{result['top_label']} {result['top_name']}",
+                help="가장 가능성이 높은 병변 유형입니다.",
             )
-            confidence = random.choice(["높음", "보통", "낮음"])
+            metric_right.metric("분석 신뢰도", f"{result['confidence'] * 100:.1f}%")
 
-            if risk_level == "빠른 진료 권장":
-                st.error(f"위험도: {risk_level}")
-            elif risk_level == "진료 권장":
-                st.warning(f"위험도: {risk_level}")
-            elif risk_level == "관찰 필요":
-                st.info(f"위험도: {risk_level}")
+            # 위험도 게이지
+            st.plotly_chart(risk_gauge(result["risk"]), use_container_width=True)
+
+            # 클래스별 예측 확률 막대
+            st.markdown("### 클래스별 예측 확률")
+            st.plotly_chart(
+                probability_bar_chart(result["probs"]),
+                use_container_width=True,
+            )
+
+            # Grad-CAM: 원본과 히트맵 나란히
+            st.markdown("### Grad-CAM (관심 영역)")
+            cam = gradcam(image)
+            if cam is not None:
+                cam_left, cam_right = st.columns(2)
+                cam_left.image(image, caption="원본", use_container_width=True)
+                cam_right.image(
+                    gradcam_overlay(image, cam),
+                    caption="Grad-CAM",
+                    use_container_width=True,
+                )
             else:
-                st.success(f"위험도: {risk_level}")
+                st.info(
+                    "Grad-CAM은 실제 학습 모델이 연결되면 표시됩니다. "
+                    "(현재는 더미 모드)"
+                )
 
-            st.markdown("### 예측 병변 유형")
-
-            candidates = [
-                ("A2 비듬/각질 가능성", 0.42),
-                ("A3 태선화/색소 가능성", 0.31),
-                ("A7 무증상/정상 가능성", 0.18),
-            ]
-
-            for name, score in candidates:
-                st.write(f"**{name}**")
-                st.progress(score)
-                st.caption(f"가능성 점수: {score * 100:.1f}%")
-
-            st.metric("분석 신뢰도", confidence)
-
+            # 보호자 행동 가이드
             st.markdown("### 보호자 행동 가이드")
             st.write(
                 """
@@ -129,8 +237,8 @@ with content:
                     "고양이 데이터는 강아지 데이터보다 상대적으로 적어 일부 병변 유형의 분석 신뢰도가 낮을 수 있습니다."
                 )
 
-        elif analyze_button and uploaded_file is None:
-            st.warning("분석할 피부 사진을 먼저 업로드해주세요.")
+        elif analyze_button and image_source is None:
+            st.warning("분석할 피부 사진을 먼저 업로드하거나 촬영해주세요.")
         else:
             st.info("왼쪽에서 분석 정보를 입력하고 이미지를 업로드하면 분석 결과가 표시됩니다.")
 
