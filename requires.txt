@@ -9,3 +9,23 @@ streamlit
 ultralytics    # YOLOv8 (병변 탐지용)
 Pillow
 tqdm
+
+------- 가상환경 세팅------
+
+rmdir /s /q venv
+
+python -m venv venv
+
+:: 가상환경 활성화 (진입 성공 시 터미널 맨 앞에 (dml_venv) 가 붙습니다)
+venv\Scripts\activate
+
+:: 가상환경 내부의 pip 업그레이드
+python -m pip install --upgrade pip
+
+:: 주피터 노트북 연결용 커널 라이브러리 설치
+pip install ipykernel
+
+:: 주피터 장부에 "나 Python 3.12 가상환경이야" 라고 등록하기
+python -m ipykernel install --user --name=venv --display-name="Python 3.12 (venv)"
+
+-------------------------
