@@ -5,8 +5,13 @@ numpy
 pillow
 matplotlib
 
-# ── 모델 추론용 (학습된 .pt PyTorch 모델 로드에 필요) ──
-# CPU만으로 추론하면 아래 두 줄로 충분합니다 (앱은 map_location="cpu"로 동작).
-# GPU 추론이 필요하면 https://pytorch.org 에서 CUDA 버전 설치 명령을 받아 쓰세요.
-torch
-torchvision
+# ── 모델 추론용 (학습된 .keras EfficientNetB3 모델 로드에 필요) ──
+# 프론트(inference.py)는 TensorFlow/Keras 모델을 불러와 추론합니다.
+# CPU 전용 휠이라 Streamlit Cloud(GPU 없음)에서도 그대로 설치됩니다.
+#
+# 참고(배포 시):
+#   - 최종 모델 final_models/efficientnetb3_final_*.keras (≈141MB)는 git에 올리지 않아
+#     클라우드에는 없습니다. 이 경우 git에 포함된 models/exp2_transfer_finetuned.keras(128px)로
+#     자동 폴백하며, 그마저 없으면 더미 모드로 동작합니다(앱은 끊기지 않음).
+#   - 클라우드 빌드 용량/시간이 부담되면 아래 한 줄을 주석 처리해 더미 모드로 운영할 수 있습니다.
+tensorflow-cpu
