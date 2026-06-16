@@ -4,3 +4,9 @@ pandas
 numpy
 pillow
 matplotlib
+
+# ── 모델 추론용 (학습된 .pt PyTorch 모델 로드에 필요) ──
+# CPU만으로 추론하면 아래 두 줄로 충분합니다 (앱은 map_location="cpu"로 동작).
+# GPU 추론이 필요하면 https://pytorch.org 에서 CUDA 버전 설치 명령을 받아 쓰세요.
+torch
+torchvision
