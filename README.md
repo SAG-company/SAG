@@ -435,7 +435,7 @@ Dense(7, softmax)
 
 | 분류 | 기술 |
 |------|------|
-| **언어** | Python 3.9+ |
+| **언어** | Python 3.12+ |
 | **딥러닝** | PyTorch, torchvision (Exp 3) · TensorFlow/Keras (Exp 1·2) |
 | **모델** | EfficientNetB0 (Exp 3) · EfficientNetB3 (Exp 2) · Baseline CNN (Exp 1) |
 | **데이터** | pandas, NumPy, Pillow |
