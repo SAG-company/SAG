@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import numpy as np
 import plotly.graph_objects as go
 import streamlit as st
@@ -11,6 +13,14 @@ from inference import (
     risk_score,
 )
 from ui import inject_global_css, render_nav, render_page_hero
+
+
+# 샘플 이미지 — 사용자가 업로드 없이 바로 체험 (assets/samples/sample_A1.jpg ...)
+SAMPLES_DIR = Path(__file__).resolve().parent.parent / "assets" / "samples"
+SAMPLE_SHORT = {
+    "A1": "구진/플라크", "A2": "비듬/각질", "A3": "태선화/색소",
+    "A4": "농포/여드름", "A5": "미란/궤양", "A6": "결절/종괴", "A7": "정상",
+}
 
 
 # =========================================================
@@ -168,6 +178,36 @@ def gradcam_overlay(image: Image.Image, cam: np.ndarray) -> Image.Image:
 left_margin, content, right_margin = st.columns([0.06, 0.88, 0.06])
 
 with content:
+
+    # ---------- 샘플 이미지로 바로 체험 ----------
+    st.html(
+        """
+<div class="card">
+    <div class="section-title">샘플 이미지로 바로 체험하기</div>
+    <div class="section-desc">
+        준비된 사진이 없으신가요? 아래 예시 사진(학습 데이터셋의 테스트 이미지) 중 하나를 누르면
+        업로드 없이 바로 AI 분석을 체험할 수 있습니다. 결과는 아래 <b>AI Analysis Result</b>에 표시됩니다.
+    </div>
+</div>
+<br>
+"""
+    )
+
+    sample_cols = st.columns(len(CLASS_ORDER))
+    for i, code in enumerate(CLASS_ORDER):
+        spath = SAMPLES_DIR / f"sample_{code}.jpg"
+        with sample_cols[i]:
+            if spath.exists():
+                st.image(str(spath), use_container_width=True)
+                st.caption(f"{code} {SAMPLE_SHORT.get(code, '')}")
+                if st.button("이 사진 분석", key=f"sample_btn_{code}", use_container_width=True):
+                    st.session_state["sample_path"] = str(spath)
+                    st.session_state["run_sample"] = True
+            else:
+                st.caption(f"{code} (샘플 준비중)")
+
+    st.html("<br>")
+
     left, right = st.columns([1, 1.15], gap="large")
 
     with left:
@@ -215,10 +255,16 @@ with content:
         else:
             image_source = st.camera_input("피부 사진 촬영")
 
-        # 원본 미리보기
+        # 원본 미리보기 (업로드/카메라 우선, 없으면 선택된 샘플)
         if image_source is not None:
             preview = Image.open(image_source)
             st.image(preview, caption="입력 이미지", use_container_width=True)
+        elif st.session_state.get("sample_path"):
+            st.image(
+                st.session_state["sample_path"],
+                caption="선택된 샘플 이미지",
+                use_container_width=True,
+            )
 
         analyze_button = st.button(
             "RUN AI ANALYSIS",
@@ -240,8 +286,17 @@ with content:
 """
         )
 
-        if analyze_button and image_source is not None:
-            image = Image.open(image_source)
+        # 분석 대상/트리거 결정 (업로드·카메라 우선, 없으면 선택된 샘플)
+        if image_source is not None:
+            active_source = image_source
+            st.session_state["sample_path"] = None  # 새 업로드 시 이전 샘플 선택 해제
+        else:
+            active_source = st.session_state.get("sample_path")
+
+        do_analyze = analyze_button or st.session_state.pop("run_sample", False)
+
+        if do_analyze and active_source is not None:
+            image = Image.open(active_source)
             result = predict(image)
 
             if not result["available"]:
@@ -294,10 +349,10 @@ with content:
             if animal == "고양이":
                 st.caption("※ 고양이 데이터는 강아지보다 상대적으로 적어 일부 병변 유형의 신뢰도가 낮을 수 있습니다.")
 
-        elif analyze_button and image_source is None:
-            st.warning("분석할 피부 사진을 먼저 업로드하거나 촬영해주세요.")
+        elif do_analyze and active_source is None:
+            st.warning("분석할 피부 사진을 먼저 업로드·촬영하거나, 위의 샘플 이미지를 선택해주세요.")
         else:
-            st.info("왼쪽에서 분석 정보를 입력하고 이미지를 업로드하면 분석 결과가 표시됩니다.")
+            st.info("왼쪽에서 정보를 입력하고 사진을 업로드하거나, 위의 샘플 이미지를 눌러 분석을 시작하세요.")
 
     st.html(
         """

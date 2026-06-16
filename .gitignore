@@ -8,6 +8,12 @@ data/raw_sub/
 data/processed/
 data/augmented/
 outputs/models/
+# 학습된 .keras 모델 (개당 50~135MB, GitHub 100MB 한도 초과) — 로컬에만 보관
+final_models/
+
+# JS 빌드 의존성 / 로그 (커밋 불필요, 재생성 가능)
+node_modules/
+*.log
 
 # Python 캐시
 __pycache__/

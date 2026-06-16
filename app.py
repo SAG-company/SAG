@@ -51,8 +51,8 @@ st.html(
             </div>
 
             <div class="btn-row">
-                <a class="btn-primary" href="/Detection" target="_self">분석 시작하기</a>
-                <a class="btn-secondary" href="/About" target="_self">서비스 소개</a>
+                <a class="btn-primary" href="/detection" target="_self">분석 시작하기</a>
+                <a class="btn-secondary" href="/about" target="_self">서비스 소개</a>
             </div>
         </div>
     </div>
