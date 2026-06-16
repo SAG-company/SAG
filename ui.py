@@ -526,8 +526,21 @@ html, body, [class*="css"] {
 ========================= */
 
 @media (max-width: 1100px) {
+/* 🔴 기존의 .nav-links { display: none; } 을 지우고 아래 코드로 대체합니다. */
+    .top-nav {
+        height: auto;               /* 높이를 가변적으로 변경 */
+        padding: 15px 24px;         /* 좌우 여백을 줄임 */
+        # flex-direction: column;     /* 로고와 메뉴를 위아래 2줄로 배치 */
+        gap: 12px;
+        align-items: center;
+    }
+
     .nav-links {
-        display: none;
+        display: flex;              /* 메뉴가 계속 보이도록 설정 */
+        gap: 16px;                  /* 메뉴 간격 축소 (기존 36px) */
+        font-size: 13px;            /* 글자 크기 축소 (기존 15px) */
+        flex-wrap: wrap;            /* 화면이 더 줄어들면 자연스럽게 다음 줄로 줄바꿈 */
+        justify-content: center;
     }
 
     .nav-right {
