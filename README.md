@@ -533,7 +533,7 @@ torch.cuda.empty_cache()
 
 ```
 MIT License
-Copyright (c) 2025 mysun1034, shsha0629, Kyyy12345
+Copyright (c) 2026 mysun1034, shsha0629, Kyyy12345
 ```
 
 ---
