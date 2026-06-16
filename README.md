@@ -15,9 +15,9 @@ AI Hub의 반려동물 피부 질환 데이터셋을 활용하여 7가지 증상
 
 | GitHub ID | 역할 | 담당 내용 |
 |-----------|------|-----------|
-| [@mysun1034](https://github.com/mysun1034) | 데이터 엔지니어링 | 데이터 수집, EDA, 전처리 파이프라인, `dataset_cleaned.csv` 생성 |
-| [@shsha0629](https://github.com/shsha0629) | 모델 설계 | 실험 설계, 학습, EDA 기반 개선, README 작성 |
-| [@Kyyy12345](https://github.com/Kyyy12345) | 서비스 개발 | Streamlit 앱 구현, 최종 발표 |
+| [@shsha0629](https://github.com/shsha0629) | 데이터 엔지니어링 | 데이터 수집, EDA, 전처리 파이프라인, `dataset_cleaned.csv` 생성 |
+| [@Kyyy12345](https://github.com/Kyyy12345) | 모델 설계 | 실험 설계, 학습, EDA 기반 개선, README 작성 |
+| [@mysun1034](https://github.com/mysun1034) | 서비스 개발 | Streamlit 앱 구현, 최종 발표 |
 
 ---
 
