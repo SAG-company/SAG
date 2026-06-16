@@ -30,6 +30,17 @@ AI Hub의 반려동물 피부 질환 데이터셋을 활용하여 7가지 증상
 - **비교 모델**: EfficientNetB0 — EDA 개선 적용 (`exp3_v4_final.ipynb`)
 - **서비스**: Streamlit 웹 앱
 
+### 🧩 모델링 설계
+
+| 항목 | 내용 |
+|------|------|
+| **문제 유형** | 다중 클래스 분류 (Multi-class Classification) |
+| **Target** | 반려동물 피부 이미지 → 7종 질환 클래스 (A1~A7) 중 하나 예측 |
+| **Feature** | 반려동물 피부 부위 RGB 이미지 (224×224×3 픽셀, 0~255 정규화) |
+| **모델** | EfficientNetB3 (주) · EfficientNetB0 (비교) — 2단계 전이학습 |
+| **평가지표** | Accuracy (주), Top-3 Accuracy, F1-Score (클래스별), Confusion Matrix |
+
+### 📊 최종 성능 결과
 | 항목 | 내용 |
 |------|------|
 | 주 모델 (Exp 2) | **EfficientNetB3** — 2단계 전이학습 |
@@ -198,6 +209,43 @@ streamlit run app.py
 ```
 
 브라우저에서 `http://localhost:8501` 접속
+
+### 🆕 새 PC에서 처음 실행할 때 체크리스트
+
+git clone 후 새 환경에서 막히는 지점을 순서대로 체크하세요.
+
+```text
+□ 1. Python 3.9+ 설치 확인
+      python --version
+
+□ 2. CUDA 설치 확인 (GPU 사용 시)
+      nvidia-smi
+
+□ 3. 가상환경 생성 및 활성화
+      python -m venv venv
+      venv\Scripts\activate      (Windows)
+      source venv/bin/activate   (Mac/Linux)
+
+□ 4. 패키지 전체 설치
+      pip install -r requirements.txt
+
+□ 5. Jupyter 커널 등록 (노트북 실행 시 필수)
+      python -m ipykernel install --user --name=sag --display-name "Python (SAG)"
+
+□ 6. AI Hub 데이터 다운로드 후 data/raw/ 배치
+
+□ 7. dataset_cleaned.csv 존재 확인
+      python -c "import pandas as pd; df=pd.read_csv('data/processed/dataset_cleaned.csv'); print(len(df), '행')"
+
+□ 8. GPU 인식 확인
+      python -c "import torch; print('PyTorch GPU:', torch.cuda.is_available())"
+      python -c "import tensorflow as tf; print('TF GPU:', tf.config.list_physical_devices('GPU'))"
+```
+
+> ⚠️ **8번에서 GPU: False 가 출력되면** CPU 버전 torch가 설치된 것입니다.
+> ```bash
+> pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+> ```
 
 ---
 
