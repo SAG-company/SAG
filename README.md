@@ -4,7 +4,7 @@
 AI Hub의 반려동물 피부 질환 데이터셋을 활용하여 7가지 증상을 분류합니다.  
 **주 모델: EfficientNetB3 2단계 전이학습** | *(Exp 3: EfficientNetB0도 함께 검증)*
 
-[![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=flat&logo=python&logoColor=white)](https://python.org)
+[![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=flat&logo=python&logoColor=white)](https://python.org)
 [![TensorFlow](https://img.shields.io/badge/TensorFlow-2.13+-FF6F00?style=flat&logo=tensorflow&logoColor=white)](https://tensorflow.org)
 [![Streamlit](https://img.shields.io/badge/Streamlit-App-FF4B4B?style=flat&logo=streamlit&logoColor=white)](https://streamlit.io)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
