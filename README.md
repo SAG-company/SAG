@@ -94,7 +94,7 @@ SAG/
 ### 요구 사항
 
 ```
-Python  >= 3.9
+Python  >= 3.12
 CUDA    >= 11.8   (GPU 사용 시 권장)
 RAM     >= 8GB
 VRAM    >= 4GB    (배치 32~64 기준)
