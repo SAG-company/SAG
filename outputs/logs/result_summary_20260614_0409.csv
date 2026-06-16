@@ -1,0 +1,2 @@
+timestamp,env,base_model,normalization,phase1_best_val_acc,phase1_time_min,phase2_best_val_acc,phase2_time_min,test_acc,test_top3_acc,test_loss,target_achieved
+20260614_0409,WSL GPU,EfficientNetB3,EDA custom (domain-specific),0.4174128472805023,102.5,0.4997142255306244,159.7,0.49561572074890137,0.7992756366729736,1.4950628280639648,False

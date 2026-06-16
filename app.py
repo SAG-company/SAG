@@ -27,7 +27,7 @@ def image_to_base64(path: str) -> str:
 inject_global_css()
 render_nav("Home")
 
-hero_base64 = image_to_base64("assets/hero_pet_skin.png")
+hero_base64 = image_to_base64("assets/app.png")
 
 if hero_base64:
     hero_background = (
@@ -35,7 +35,7 @@ if hero_base64:
         f"url('data:image/png;base64,{hero_base64}')"
     )
 else:
-    hero_background = "linear-gradient(135deg, #08111F, #13284B)"
+    hero_background = "linear-gradient(120deg, #001E62, #0a47ed)"
 
 
 st.html(
@@ -51,8 +51,8 @@ st.html(
             </div>
 
             <div class="btn-row">
-                <a class="btn-primary" href="/Detection" target="_self">분석 시작하기</a>
-                <a class="btn-secondary" href="/About" target="_self">서비스 소개</a>
+                <a class="btn-primary" href="/detection" target="_self">분석 시작하기</a>
+                <a class="btn-secondary" href="/about" target="_self">서비스 소개</a>
             </div>
         </div>
     </div>
@@ -84,6 +84,48 @@ st.html(
         <div class="feature-title">데이터 분석</div>
         <div class="feature-desc">
             데이터 분포와 편향을 분석하여 서비스 신뢰도를 높입니다.
+        </div>
+    </div>
+</section>
+"""
+)
+
+
+# 사용법 + 팀 정보
+st.html(
+    """
+<section style="width:min(1280px, calc(100% - 64px)); margin:64px auto;">
+    <div class="section-title">사용 방법</div>
+    <div class="grid-3">
+        <div class="card">
+            <div class="mini-title">1. 사진 준비</div>
+            <div class="mini-text">강아지·고양이의 피부 부위가 선명하게 보이는 사진을 준비합니다.</div>
+        </div>
+        <div class="card">
+            <div class="mini-title">2. 업로드 / 촬영</div>
+            <div class="mini-text">Detection 페이지에서 사진을 업로드하거나 카메라로 촬영합니다.</div>
+        </div>
+        <div class="card">
+            <div class="mini-title">3. 결과 확인</div>
+            <div class="mini-text">병변 유형, 위험도, 신뢰도와 보호자 행동 가이드를 확인합니다.</div>
+        </div>
+    </div>
+
+    <br><br>
+
+    <div class="section-title">팀 SAG</div>
+    <div class="grid-3">
+        <div class="card">
+            <div class="mini-title">데이터 · EDA</div>
+            <div class="mini-text">데이터 수집, 품질 필터링, 층화 샘플링, 탐색적 데이터 분석을 담당합니다.</div>
+        </div>
+        <div class="card">
+            <div class="mini-title">모델링</div>
+            <div class="mini-text">CNN · Transfer Learning 기반 피부 질환 분류 모델을 설계하고 학습합니다.</div>
+        </div>
+        <div class="card">
+            <div class="mini-title">서비스 · 프론트엔드</div>
+            <div class="mini-text">Streamlit 기반 분석 서비스와 결과 시각화 화면을 구축합니다.</div>
         </div>
     </div>
 </section>

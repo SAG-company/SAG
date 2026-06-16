@@ -5,11 +5,11 @@
 ---
 
 ## 1. 데이터셋 개요 (Dataset Overview)
-* [cite_start]**원본 데이터:** AI Hub 반려동물 피부 질환 데이터 [cite: 81]
-* [cite_start]**프로젝트 대상 범위 확장:** 기존 반려견(Dog) 데이터에서 **반려묘(Cat) 데이터까지 축종 범위를 확장(`D`, `C`)**하여 모델의 범용성을 확보함[cite: 95, 106].
+* **원본 데이터:** AI Hub 반려동물 피부 질환 데이터 [cite: 81]
+* **프로젝트 대상 범위 확장:** 기존 반려견(Dog) 데이터에서 **반려묘(Cat) 데이터까지 축종 범위를 확장(`D`, `C`)**하여 모델의 범용성을 확보함[cite: 95, 106].
 * **데이터 관리 구조:**
   * `..` (ROOT) : 프로젝트 최상위 경로
-  * [cite_start]`../data/raw/` : 최초 원본 이미지(`*.jpg`) 및 라벨링(`*.json`) 저장소 [cite: 91, 92]
+  * `../data/raw/` : 최초 원본 이미지(`*.jpg`) 및 라벨링(`*.json`) 저장소 [cite: 91, 92]
   * `../data/raw_sub/` : 층화 샘플링으로 선정된 알짜배기 정예 표본 이미지 격리 폴더 (3일 차 전처리 가속화용)
   * `../data/processed/` : 정제 완료된 메타데이터 마스터 CSV 파일 보관 경로
 
@@ -22,26 +22,26 @@
 | 컬럼명 (Column) | 타입 (Type) | 설명 (Description) | 비고 / 범위 가이드 |
 | :--- | :--- | :--- | :--- |
 | **`json_path`** | `String` | 파싱된 원본 JSON 파일의 저장 경로 | 오류 디버깅 및 역추적용 |
-| **`img_file`** | `String` | 이미지 파일명 (확장자 포함) | [cite_start]메타데이터 내 `Raw data ID` 매핑 [cite: 139] |
-| **`species`** | `String` | 반려동물 축종 코드 | [cite_start]**`D` (개 / Dog)** 및 **`C` (고양이 / Cat)** 대상을 모두 포함 [cite: 147] |
-| **`lesion`** | `String` | 피부 질환 클래스 코드 (라벨) | [cite_start]**A1 ~ A7** 분류 코드 체계 적용 [cite: 149] |
+| **`img_file`** | `String` | 이미지 파일명 (확장자 포함) | 메타데이터 내 `Raw data ID` 매핑 [cite: 139] |
+| **`species`** | `String` | 반려동물 축종 코드 | **`D` (개 / Dog)** 및 **`C` (고양이 / Cat)** 대상을 모두 포함 [cite: 147] |
+| **`lesion`** | `String` | 피부 질환 클래스 코드 (라벨) | **A1 ~ A7** 분류 코드 체계 적용 [cite: 149] |
 | **`lesion_name`**| `String` | 피부 질환 클래스의 한국어 매핑명 | EDA 시각화 및 결과 도출용 한글 레이블 |
-| **`region`** | `String` | 촬영 신체 부위 코드 | [cite_start]**B** (몸통), **L** (다리), **H** (머리), **A** (연접부) [cite: 145, 146] |
-| **`path_type`** | `String` | 증상 유무 분류명 | [cite_start]`유증상` / `무증상` [cite: 151] |
+| **`region`** | `String` | 촬영 신체 부위 코드 | **B** (몸통), **L** (다리), **H** (머리), **A** (연접부) [cite: 145, 146] |
+| **`path_type`** | `String` | 증상 유무 분류명 | `유증상` / `무증상` [cite: 151] |
 | **`hash`** | `String` | 이미지 바이너리 MD5 체크섬 값 | 중복 이미지 완전 배제용 고유 키 |
 | **`split`** | `String` | 모델 학습용 데이터 분할 그룹 | **`train`** (70%), **`val`** (15%), **`test`** (15%) |
 | **`img_path`** | `String` | 로컬 환경 내 원본 이미지 절대 경로 | 로컬 드라이브 전용 매핑 경로 |
 | **`sub_img_path`**| `String` | **격리 폴더(`data/raw_sub/`) 내부 경로** | **★ 모델링 팀원 학습 데이터 로더 최적화 입력 컬럼** |
 | **`quality`** | `String` | 이미지 자동 품질 검사 결과 코드 | **`OK`** (정상), `밝기이상`, `저해상도`, `단색손상`, `파일손상` |
 
-### [cite_start]🔍 질환 코드 (`lesion` → `lesion_name`) 매핑 규칙 [cite: 149]
-* [cite_start]**`A1`**: 구진 / 플라크 (Papule / Plaque) [cite: 149]
+### 🔍 질환 코드 (`lesion` → `lesion_name`) 매핑 규칙 [cite: 149]
+* **`A1`**: 구진 / 플라크 (Papule / Plaque) [cite: 149]
 * **`A2`**: 비듬 / 각질 / 상피성잔고리 (Scale / Crust) [cite: 149]
-* [cite_start]**`A3`**: 태선화 / 과다색소침착 (Lichenification) [cite: 149]
-* [cite_start]**`A4`**: 농포 / 여드름 (Pustule) [cite: 149]
+* **`A3`**: 태선화 / 과다색소침착 (Lichenification) [cite: 149]
+* **`A4`**: 농포 / 여드름 (Pustule) [cite: 149]
 * **`A5`**: 미란 / 궤양 (Erosion / Ulcer) [cite: 149]
-* [cite_start]**`A6`**: 결절 / 종괴 (Nodule / Tumor) [cite: 149]
-* [cite_start]**`A7`**: **무증상 (정상군 / Normal)** -> *JSON 내부 `lesions` 공백 시 `Path` 데이터 폴백 예외처리 완료* [cite: 149]
+* **`A6`**: 결절 / 종괴 (Nodule / Tumor) [cite: 149]
+* **`A7`**: **무증상 (정상군 / Normal)** -> *JSON 내부 `lesions` 공백 시 `Path` 데이터 폴백 예외처리 완료* [cite: 149]
 
 ---
 

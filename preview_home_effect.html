@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>홈 히어로 펫 달리기 효과 미리보기</title>
+<style>
+  * { margin: 0; box-sizing: border-box; }
+  body { font-family: Arial, "Malgun Gothic", sans-serif; background:#0b1633; }
+
+  /* ===== 실제 app.py/ui.py와 동일한 히어로 + 펫 효과 ===== */
+  .home-hero {
+    min-height: 760px;
+    background: linear-gradient(120deg, #001E62, #0a47ed);
+    display: flex; align-items: center;
+    position: relative; overflow: hidden;
+  }
+  .home-hero::before {
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background: linear-gradient(100deg, rgba(0,30,98,0.78) 0%, rgba(10,59,196,0.45) 48%, rgba(0,30,98,0.10) 100%);
+  }
+  .home-hero-inner { width:min(1280px, calc(100% - 64px)); margin:0 auto; position:relative; z-index:2; }
+  .home-hero-text { max-width:600px; color:#fff; }
+  .home-title { font-size:76px; font-weight:800; letter-spacing:-2px; margin-bottom:28px; text-shadow:0 4px 22px rgba(0,0,0,.28); }
+  .home-desc { font-size:22px; line-height:1.7; color:rgba(255,255,255,.92); margin-bottom:36px; text-shadow:0 3px 14px rgba(0,0,0,.3); }
+  .btn-primary { background:#fff; color:#0a47ed; padding:16px 40px; border-radius:10px; font-weight:700; text-decoration:none; }
+
+  /* ----- 펫 달리기 효과 (ui.py에 들어간 것과 동일) ----- */
+  .pet-layer { position:absolute; inset:0; overflow:hidden; pointer-events:none; z-index:1; }
+  .pet-lane { position:absolute; left:0; white-space:nowrap; animation: pet-dash linear infinite; }
+  .pet-lane.rev { animation-direction: reverse; }
+  .pet-lane .pet { display:inline-block; font-size:46px; animation: pet-bob .42s ease-in-out infinite alternate; }
+  .pet-lane.flip .pet { transform: scaleX(-1); }
+  @keyframes pet-dash { from{transform:translateX(-15vw)} to{transform:translateX(115vw)} }
+  @keyframes pet-bob  { from{margin-bottom:0} to{margin-bottom:18px} }
+</style>
+</head>
+<body>
+  <section class="home-hero">
+    <div class="pet-layer">
+      <div class="pet-lane flip" style="bottom:40px;  animation-duration:9s;  animation-delay:0s;"><span class="pet">🐕</span></div>
+      <div class="pet-lane rev"  style="bottom:120px; animation-duration:13s; animation-delay:1.2s;"><span class="pet">🐈</span></div>
+      <div class="pet-lane flip" style="bottom:200px; animation-duration:11s; animation-delay:3s;"><span class="pet">🐩</span></div>
+      <div class="pet-lane rev"  style="bottom:70px;  animation-duration:15s; animation-delay:0.6s;"><span class="pet">🐈‍⬛</span></div>
+      <div class="pet-lane flip" style="bottom:150px; animation-duration:8s;  animation-delay:5s;"><span class="pet">🐕‍🦺</span></div>
+      <div class="pet-lane flip" style="bottom:24px;  animation-duration:7s;  animation-delay:6.5s;"><span class="pet" style="font-size:30px;">🐾</span></div>
+    </div>
+    <div class="home-hero-inner">
+      <div class="home-hero-text">
+        <div class="home-title">AI 수의사</div>
+        <div class="home-desc">강아지와 고양이의 피부 사진을 기반으로<br>AI가 병변 유형과 진료 필요도를 분석합니다.</div>
+        <a class="btn-primary" href="#">분석 시작하기</a>
+      </div>
+    </div>
+  </section>
+</body>
+</html>

@@ -1,10 +1,49 @@
+import base64
+from pathlib import Path
+
 import streamlit as st
+
+
+def image_to_base64(path: str) -> str:
+    image_path = Path(path)
+
+    if not image_path.exists():
+        return ""
+
+    with open(image_path, "rb") as file:
+        return base64.b64encode(file.read()).decode()
 
 
 def inject_global_css() -> None:
     st.html(
         """
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+/* =========================
+   Pfizer-inspired palette
+   (밝은 일렉트릭 블루 + 시안 액센트 + 넉넉한 여백)
+========================= */
+:root {
+    --pf-blue: #0a47ed;          /* primary action / link */
+    --pf-blue-strong: #0833b8;   /* hover */
+    --pf-blue-deep: #001E62;     /* hero / 강조 */
+    --pf-blue-mid: #0b3bc4;      /* gradient mid */
+    --pf-cyan: #00b5e2;          /* accent (the "twist") */
+    --pf-tint: #eef3ff;          /* 연한 블루 배경 */
+    --ink: #14152b;              /* heading near-black */
+    --text: #3f4654;            /* body */
+    --muted: #6b7280;
+    --bg: #ffffff;
+    --bg-soft: #f5f7fc;
+    --border: #e6eaf2;
+    --radius: 16px;
+    --radius-sm: 12px;
+    --shadow: 0 10px 30px rgba(20, 30, 80, 0.07);
+    --shadow-lift: 0 18px 44px rgba(10, 71, 237, 0.16);
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+}
+
 header, footer, #MainMenu {
     visibility: hidden;
 }
@@ -17,7 +56,12 @@ header, footer, #MainMenu {
 }
 
 .stApp {
-    background: #F7F8FA;
+    background: var(--bg-soft);
+    font-family: var(--font);
+}
+
+html, body, [class*="css"] {
+    font-family: var(--font);
 }
 
 /* =========================
@@ -25,31 +69,39 @@ header, footer, #MainMenu {
 ========================= */
 
 .top-nav {
-    height: 78px;
-    background: rgba(255, 255, 255, 0.97);
+    height: 80px;
+    background: rgba(255, 255, 255, 0.92);
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 54px;
-    border-bottom: 1px solid rgba(17, 24, 39, 0.08);
+    border-bottom: 1px solid var(--border);
     position: sticky;
     top: 0;
     z-index: 999;
-    backdrop-filter: blur(10px);
-    font-family: Arial, sans-serif;
+    backdrop-filter: saturate(160%) blur(12px);
+    font-family: var(--font);
 }
 
 .brand {
     display: flex;
     align-items: center;
     gap: 14px;
-    color: #0B1633;
+    color: var(--pf-blue-deep);
+    min-width: 180px;
+}
+
+.brand-logo {
+    height: 50px;
+    width: auto;
+    object-fit: contain;
+    display: block;
 }
 
 .logo-dot {
     width: 36px;
     height: 36px;
-    background: #13284B;
+    background: linear-gradient(135deg, var(--pf-blue), var(--pf-cyan));
     border-radius: 50%;
 }
 
@@ -58,33 +110,56 @@ header, footer, #MainMenu {
     line-height: 1.0;
     font-weight: 800;
     letter-spacing: -0.5px;
+    color: var(--pf-blue-deep);
 }
 
 .nav-links {
     display: flex;
     align-items: center;
-    gap: 38px;
+    gap: 36px;
     font-size: 15px;
-    color: #111827;
-    font-weight: 500;
+    color: var(--ink);
+    font-weight: 600;
 }
 
 .nav-links a {
     text-decoration: none;
-    color: #111827;
-    padding-bottom: 8px;
+    color: var(--ink);
+    padding-bottom: 6px;
+    border-bottom: 2px solid transparent;
+    transition: color .18s ease, border-color .18s ease;
+}
+
+.nav-links a:hover {
+    color: var(--pf-blue);
 }
 
 .nav-links a.active {
-    border-bottom: 2px solid #13284B;
+    color: var(--pf-blue);
+    border-bottom: 2px solid var(--pf-blue);
 }
 
 .nav-right {
     display: flex;
     align-items: center;
-    gap: 18px;
-    color: #111827;
-    font-size: 15px;
+    gap: 16px;
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.nav-right .login-btn {
+    background: var(--pf-blue);
+    color: #fff;
+    padding: 9px 20px;
+    border-radius: 999px;
+    font-weight: 700;
+    transition: background .18s ease, transform .18s ease;
+}
+
+.nav-right .login-btn:hover {
+    background: var(--pf-blue-strong);
+    transform: translateY(-1px);
 }
 
 /* =========================
@@ -92,39 +167,55 @@ header, footer, #MainMenu {
 ========================= */
 
 .page-hero {
-    background: linear-gradient(135deg, #08111F 0%, #13284B 100%);
+    background: linear-gradient(120deg, var(--pf-blue-deep) 0%, var(--pf-blue-mid) 60%, var(--pf-blue) 100%);
     color: white;
-    padding: 70px 0;
-    font-family: Arial, sans-serif;
+    padding: 86px 0;
+    font-family: var(--font);
+    position: relative;
+    overflow: hidden;
+}
+
+.page-hero::after {
+    content: "";
+    position: absolute;
+    right: -120px;
+    top: -120px;
+    width: 420px;
+    height: 420px;
+    background: radial-gradient(circle, rgba(0,181,226,0.45), transparent 65%);
+    border-radius: 50%;
+    pointer-events: none;
 }
 
 .page-hero-inner {
     width: min(1280px, calc(100% - 64px));
     margin: 0 auto;
+    position: relative;
+    z-index: 1;
 }
 
 .eyebrow {
-    color: #A8C7FF;
-    letter-spacing: 2.4px;
+    color: var(--pf-cyan);
+    letter-spacing: 2.6px;
     font-size: 13px;
     text-transform: uppercase;
-    font-weight: 700;
+    font-weight: 800;
     margin-bottom: 18px;
 }
 
 .page-title {
-    font-size: 56px;
-    line-height: 1.1;
-    font-weight: 700;
-    letter-spacing: -1.2px;
-    margin-bottom: 18px;
+    font-size: 58px;
+    line-height: 1.08;
+    font-weight: 800;
+    letter-spacing: -1.4px;
+    margin-bottom: 20px;
 }
 
 .page-subtitle {
     max-width: 940px;
     font-size: 18px;
     line-height: 1.85;
-    color: rgba(255,255,255,0.78);
+    color: rgba(255,255,255,0.82);
 }
 
 /* =========================
@@ -133,35 +224,42 @@ header, footer, #MainMenu {
 
 .section-title {
     font-size: 34px;
-    font-weight: 750;
-    color: #111827;
+    font-weight: 800;
+    color: var(--ink);
     margin-bottom: 18px;
-    letter-spacing: -0.6px;
+    letter-spacing: -0.7px;
 }
 
 .section-desc {
     font-size: 17px;
     line-height: 1.8;
-    color: #4B5563;
+    color: var(--text);
     max-width: 900px;
     margin-bottom: 28px;
 }
 
 .card {
-    background: #FFFFFF;
-    border: 1px solid #E5E7EB;
-    border-radius: 24px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
     padding: 32px;
-    box-shadow: 0 14px 34px rgba(17, 24, 39, 0.06);
+    box-shadow: var(--shadow);
     box-sizing: border-box;
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lift);
+    border-color: rgba(10, 71, 237, 0.28);
 }
 
 .dark-card {
-    background: linear-gradient(145deg, #08111F, #13284B);
+    background: linear-gradient(140deg, var(--pf-blue-deep), var(--pf-blue-mid));
     color: white;
-    border-radius: 24px;
+    border-radius: var(--radius);
     padding: 34px;
-    box-shadow: 0 18px 42px rgba(19, 40, 75, 0.22);
+    box-shadow: 0 18px 42px rgba(0, 30, 98, 0.28);
     box-sizing: border-box;
 }
 
@@ -180,14 +278,15 @@ header, footer, #MainMenu {
 .mini-title {
     font-size: 22px;
     font-weight: 800;
-    color: #111827;
+    color: var(--ink);
     margin-bottom: 12px;
+    letter-spacing: -0.3px;
 }
 
 .mini-text {
     font-size: 16px;
     line-height: 1.75;
-    color: #4B5563;
+    color: var(--text);
 }
 
 .dark-card .mini-title {
@@ -195,13 +294,13 @@ header, footer, #MainMenu {
 }
 
 .dark-card .mini-text {
-    color: rgba(255,255,255,0.75);
+    color: rgba(255,255,255,0.8);
 }
 
 .notice {
-    background: #EEF4FF;
-    border-left: 6px solid #13284B;
-    border-radius: 14px;
+    background: var(--pf-tint);
+    border-left: 6px solid var(--pf-blue);
+    border-radius: var(--radius-sm);
     padding: 28px 32px;
     color: #1F2937;
     font-size: 16px;
@@ -212,7 +311,7 @@ header, footer, #MainMenu {
 .warning-notice {
     background: #FFF8E1;
     border-left: 6px solid #F5C542;
-    border-radius: 14px;
+    border-radius: var(--radius-sm);
     padding: 28px 32px;
     color: #1F2937;
     font-size: 16px;
@@ -233,20 +332,39 @@ header, footer, #MainMenu {
 
 .metric-card {
     background: white;
-    border: 1px solid #E5E7EB;
-    border-radius: 20px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
     padding: 26px;
-    box-shadow: 0 12px 30px rgba(17,24,39,0.05);
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.metric-card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 4px;
+    background: linear-gradient(180deg, var(--pf-blue), var(--pf-cyan));
+}
+
+.metric-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lift);
 }
 
 .metric-label {
-    color: #6B7280;
+    color: var(--muted);
     font-size: 14px;
+    font-weight: 600;
     margin-bottom: 10px;
 }
 
 .metric-value {
-    color: #13284B;
+    color: var(--pf-blue);
     font-size: 34px;
     font-weight: 800;
     letter-spacing: -0.8px;
@@ -257,78 +375,116 @@ header, footer, #MainMenu {
 ========================= */
 
 .home-hero {
-    min-height: 780px;
+    min-height: 760px;
     background-size: cover;
     background-position: center;
     display: flex;
     align-items: center;
-    font-family: Arial, sans-serif;
+    font-family: var(--font);
+    position: relative;
+}
+
+.home-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, rgba(0,30,98,0.78) 0%, rgba(10,59,196,0.45) 48%, rgba(0,30,98,0.10) 100%);
+    pointer-events: none;
 }
 
 .home-hero-inner {
     width: min(1280px, calc(100% - 64px));
     margin: 0 auto;
+    position: relative;
+    z-index: 2;
 }
 
 .home-hero-text {
-    max-width: 570px;
+    max-width: 600px;
     color: white;
 }
 
 .home-title {
     font-size: 76px;
-    font-weight: 750;
-    line-height: 1.12;
-    letter-spacing: -1.8px;
-    margin-bottom: 30px;
-    text-shadow: 0 4px 20px rgba(0,0,0,0.32);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -2px;
+    margin-bottom: 28px;
+    text-shadow: 0 4px 22px rgba(0,0,0,0.28);
 }
 
 .home-desc {
     font-size: 22px;
     line-height: 1.7;
     margin-bottom: 36px;
-    text-shadow: 0 3px 14px rgba(0,0,0,0.35);
+    color: rgba(255,255,255,0.92);
+    text-shadow: 0 3px 14px rgba(0,0,0,0.3);
 }
 
 .btn-row {
     display: flex;
-    gap: 20px;
+    gap: 18px;
 }
 
 .btn-primary {
-    padding: 17px 48px;
-    background: #13284B;
+    padding: 16px 44px;
+    background: var(--pf-blue);
     color: white !important;
     text-decoration: none;
-    border-radius: 8px;
-    font-size: 18px;
+    border-radius: 999px;
+    font-size: 17px;
     font-weight: 700;
+    box-shadow: 0 10px 26px rgba(10, 71, 237, 0.4);
+    transition: background .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+
+.btn-primary:hover {
+    background: var(--pf-blue-strong);
+    transform: translateY(-2px);
+    box-shadow: 0 14px 32px rgba(10, 71, 237, 0.5);
 }
 
 .btn-secondary {
-    padding: 17px 48px;
-    border: 1px solid white;
+    padding: 16px 44px;
+    border: 1.5px solid rgba(255,255,255,0.9);
     color: white !important;
     text-decoration: none;
-    border-radius: 8px;
-    font-size: 18px;
+    border-radius: 999px;
+    font-size: 17px;
     font-weight: 700;
-    background: rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.06);
+    transition: background .18s ease, transform .18s ease;
+}
+
+.btn-secondary:hover {
+    background: rgba(255,255,255,0.18);
+    transform: translateY(-2px);
 }
 
 .feature-strip {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     background: white;
-    padding: 44px 54px;
-    border-bottom: 1px solid #E5E7EB;
-    font-family: Arial, sans-serif;
+    padding: 46px 54px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font);
 }
 
 .feature {
-    padding: 0 34px;
-    border-right: 1px solid #E5E7EB;
+    padding: 4px 34px;
+    border-right: 1px solid var(--border);
+    position: relative;
+}
+
+.feature::before {
+    content: "";
+    position: absolute;
+    left: 34px;
+    top: 6px;
+    width: 34px;
+    height: 4px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--pf-blue), var(--pf-cyan));
 }
 
 .feature:last-child {
@@ -338,14 +494,31 @@ header, footer, #MainMenu {
 .feature-title {
     font-size: 21px;
     font-weight: 800;
-    color: #111827;
+    color: var(--ink);
     margin-bottom: 10px;
+    margin-top: 20px;
+    letter-spacing: -0.3px;
 }
 
 .feature-desc {
     font-size: 15px;
-    color: #4B5563;
+    color: var(--text);
     line-height: 1.65;
+}
+
+/* =========================
+   Streamlit 위젯 톤 맞추기
+========================= */
+
+.stButton > button {
+    border-radius: 999px;
+    font-weight: 700;
+    border: 1px solid var(--pf-blue);
+}
+
+.stButton > button:hover {
+    border-color: var(--pf-blue-strong);
+    color: var(--pf-blue-strong);
 }
 
 /* =========================
@@ -353,7 +526,24 @@ header, footer, #MainMenu {
 ========================= */
 
 @media (max-width: 1100px) {
+/* 🔴 기존의 .nav-links { display: none; } 을 지우고 아래 코드로 대체합니다. */
+    .top-nav {
+        height: auto;               /* 높이를 가변적으로 변경 */
+        padding: 15px 24px;         /* 좌우 여백을 줄임 */
+        # flex-direction: column;     /* 로고와 메뉴를 위아래 2줄로 배치 */
+        gap: 12px;
+        align-items: center;
+    }
+
     .nav-links {
+        display: flex;              /* 메뉴가 계속 보이도록 설정 */
+        gap: 16px;                  /* 메뉴 간격 축소 (기존 36px) */
+        font-size: 13px;            /* 글자 크기 축소 (기존 15px) */
+        flex-wrap: wrap;            /* 화면이 더 줄어들면 자연스럽게 다음 줄로 줄바꿈 */
+        justify-content: center;
+    }
+
+    .nav-right {
         display: none;
     }
 
@@ -366,7 +556,7 @@ header, footer, #MainMenu {
 
     .feature {
         border-right: none;
-        border-bottom: 1px solid #E5E7EB;
+        border-bottom: 1px solid var(--border);
         padding-bottom: 24px;
     }
 
@@ -391,6 +581,10 @@ header, footer, #MainMenu {
         flex-direction: column;
         align-items: flex-start;
     }
+
+    .brand-logo {
+        height: 42px;
+    }
 }
 </style>
 """
@@ -401,26 +595,26 @@ def render_nav(active: str) -> None:
     def active_class(name: str) -> str:
         return "active" if active == name else ""
 
+    logo_base64 = image_to_base64("assets/sag_logo.png")
+
+    if logo_base64:
+        logo_html = f'<img class="brand-logo" src="data:image/png;base64,{logo_base64}" alt="sag_logo">'
+    else:
+        logo_html = '<div class="logo-dot"></div>'
+
     st.html(
         f"""
 <div class="top-nav">
     <div class="brand">
-        <div class="logo-dot"></div>
-        <div class="brand-text">Pet Skin<br>Intelligence</div>
+        {logo_html}
     </div>
 
     <div class="nav-links">
         <a class="{active_class('Home')}" href="/" target="_self">Home</a>
-        <a class="{active_class('About')}" href="/About" target="_self">About</a>
-        <a class="{active_class('Detection')}" href="/Detection" target="_self">Detection</a>
-        <a class="{active_class('Model Performance')}" href="/Model_Performance" target="_self">Model Performance</a>
-        <a class="{active_class('Data Analysis')}" href="/Data_Analysis" target="_self">Data Analysis</a>
-    </div>
-
-    <div class="nav-right">
-        <span>Search</span>
-        <span>|</span>
-        <span>Client Login</span>
+        <a class="{active_class('About')}" href="/about" target="_self">About</a>
+        <a class="{active_class('Detection')}" href="/detection" target="_self">Detection</a>
+        <a class="{active_class('Model Performance')}" href="/model_performance" target="_self">Model Performance</a>
+        <a class="{active_class('Data Analysis')}" href="/data_analysis" target="_self">Data Analysis</a>
     </div>
 </div>
 """

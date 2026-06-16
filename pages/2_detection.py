@@ -1,13 +1,90 @@
-import random
+from pathlib import Path
 
+import numpy as np
+import plotly.graph_objects as go
 import streamlit as st
 from PIL import Image
 
+from inference import (
+    LESION_MAP,
+    CLASS_ORDER,
+    predict,
+    gradcam,
+    risk_score,
+)
 from ui import inject_global_css, render_nav, render_page_hero
 
 
+# 샘플 이미지 — 사용자가 업로드 없이 바로 체험 (assets/samples/sample_A1.jpg ...)
+SAMPLES_DIR = Path(__file__).resolve().parent.parent / "assets" / "samples"
+SAMPLE_SHORT = {
+    "A1": "구진/플라크", "A2": "비듬/각질", "A3": "태선화/색소",
+    "A4": "농포/여드름", "A5": "미란/궤양", "A6": "결절/종괴", "A7": "정상",
+}
+
+
+# =========================================================
+# 행동 가이드 빌더
+# =========================================================
+
+_SYMPTOM_GUIDE = {
+    "붉어짐":  "붉어진 부위에 냉찜질은 피하고 건조하게 유지하세요.",
+    "탈모":    "탈모 범위가 넓어지는지 날짜별 사진으로 기록해두세요.",
+    "각질":    "목욕 빈도를 줄이고 저자극 샴푸를 사용하세요.",
+    "딱지":    "딱지를 억지로 떼면 상처가 깊어질 수 있으니 그대로 두세요.",
+    "진물":    "진물이 나는 경우 세균 감염 우려가 있으니 빠른 진료를 권장합니다.",
+    "가려움":  "긁지 못하도록 넥 칼라(e-collar) 착용을 고려하세요.",
+    "냄새":    "악취가 동반되면 세균·진균 감염 가능성이 있습니다.",
+    "발 핥음": "발을 계속 핥으면 이차 감염이 생길 수 있으니 주의하세요.",
+    "통증":    "통증 반응이 있는 부위는 건드리지 말고 수의사에게 먼저 알리세요.",
+}
+
+_PART_GUIDE = {
+    "귀":       "귀 안쪽을 면봉으로 임의로 닦지 마세요. 귀 세정액이 필요하면 수의사 처방을 받으세요.",
+    "발":       "야외 산책 후 발바닥을 미온수로 깨끗이 닦아주세요.",
+    "배":       "배는 바닥 접촉이 잦으므로 위생적인 환경(침구 세탁 등)을 유지하세요.",
+    "얼굴":     "눈·코 주변 병변은 안과·내과 질환과 연관될 수 있으므로 수의사에게 알리세요.",
+    "항문 주변": "항문낭 문제일 수 있습니다. 수의사에게 항문낭 확인을 요청하세요.",
+}
+
+_RISK_GUIDE = {
+    "빠른 진료 권장":   "⚠️ 오늘 중으로 동물병원을 방문하세요.",
+    "진료 권장":        "48시간 이내에 동물병원 상담을 받으세요.",
+    "관찰 필요":        "증상이 2~3일 이상 지속되면 동물병원 상담을 권장합니다.",
+    "정상 가능성 높음": "현재 이상 소견이 낮습니다. 정기 검진을 권장합니다.",
+}
+
+
+def build_action_guide(animal: str, body_part: str, symptoms: list, risk: str) -> list[str]:
+    """선택된 동물·부위·증상·위험도를 반영한 맞춤 행동 가이드 항목 목록을 반환."""
+    items = []
+
+    # 위험도 최우선
+    items.append(_RISK_GUIDE.get(risk, "증상 변화를 주의 깊게 관찰하세요."))
+
+    # 선택된 증상별 가이드
+    for s in symptoms:
+        if s in _SYMPTOM_GUIDE:
+            items.append(_SYMPTOM_GUIDE[s])
+
+    # 부위별 가이드
+    if body_part in _PART_GUIDE:
+        items.append(_PART_GUIDE[body_part])
+
+    # 동물별 가이드
+    if animal == "고양이":
+        items.append("고양이는 증상을 숨기는 경향이 있으니 식욕·활동량 변화도 함께 살펴보세요.")
+    else:
+        items.append("같은 부위를 계속 긁거나 핥는지 관찰하세요.")
+
+    # 공통 주의사항
+    items.append("사람용 연고나 약을 임의로 사용하지 마세요.")
+
+    return items
+
+
 st.set_page_config(
-    page_title="Detection | Pet Skin Intelligence",
+    page_title="Detection | AI 수의사",
     page_icon="🐾",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -25,9 +102,112 @@ render_page_hero(
     ),
 )
 
+
+# =========================================================
+# 시각화 헬퍼
+# =========================================================
+
+def probability_bar_chart(probs: dict) -> go.Figure:
+    """7개 클래스 예측 확률을 수평 막대로 표시 (확률 오름차순 → 위로 갈수록 높음)."""
+    items = [(f"{c} {LESION_MAP[c]}", probs[c]) for c in CLASS_ORDER]
+    items.sort(key=lambda kv: kv[1])  # 오름차순 정렬
+
+    labels = [name for name, _ in items]
+    values = [v * 100 for _, v in items]
+
+    fig = go.Figure(
+        go.Bar(
+            x=values,
+            y=labels,
+            orientation="h",
+            text=[f"{v:.1f}%" for v in values],
+            textposition="outside",
+            marker_color="#13284B",
+        )
+    )
+    fig.update_layout(
+        height=360,
+        margin=dict(l=10, r=30, t=10, b=10),
+        xaxis_title="가능성 (%)",
+        xaxis_range=[0, max(values) * 1.18 if values else 100],
+        plot_bgcolor="white",
+    )
+    return fig
+
+
+def risk_gauge(risk: str) -> go.Figure:
+    """위험도 4단계를 0~100 게이지로 표시 (go.Indicator)."""
+    score = risk_score(risk)
+
+    fig = go.Figure(
+        go.Indicator(
+            mode="gauge+number",
+            value=score,
+            number={"suffix": " 점"},
+            title={"text": f"위험도: {risk}"},
+            gauge={
+                "axis": {"range": [0, 100]},
+                "bar": {"color": "#13284B"},
+                "steps": [
+                    {"range": [0, 25], "color": "#D1FAE5"},   # 정상
+                    {"range": [25, 55], "color": "#FEF3C7"},  # 관찰
+                    {"range": [55, 80], "color": "#FED7AA"},  # 진료
+                    {"range": [80, 100], "color": "#FECACA"},  # 빠른 진료
+                ],
+            },
+        )
+    )
+    fig.update_layout(height=300, margin=dict(l=20, r=20, t=50, b=10))
+    return fig
+
+
+def gradcam_overlay(image: Image.Image, cam: np.ndarray) -> Image.Image:
+    """원본 이미지 위에 Grad-CAM 히트맵을 반투명으로 겹친 이미지를 만든다."""
+    import matplotlib.cm as cm
+
+    base = image.convert("RGB")
+    heat = Image.fromarray(np.uint8(cm.jet(cam) * 255)).convert("RGB")
+    heat = heat.resize(base.size)
+    return Image.blend(base, heat, alpha=0.45)
+
+
+# =========================================================
+# 레이아웃
+# =========================================================
+
 left_margin, content, right_margin = st.columns([0.06, 0.88, 0.06])
 
 with content:
+
+    # ---------- 샘플 이미지로 바로 체험 ----------
+    st.html(
+        """
+<div class="card">
+    <div class="section-title">샘플 이미지로 바로 체험하기</div>
+    <div class="section-desc">
+        준비된 사진이 없으신가요? 아래 예시 사진(학습 데이터셋의 테스트 이미지) 중 하나를 누르면
+        업로드 없이 바로 AI 분석을 체험할 수 있습니다. 결과는 아래 <b>AI Analysis Result</b>에 표시됩니다.
+    </div>
+</div>
+<br>
+"""
+    )
+
+    sample_cols = st.columns(len(CLASS_ORDER))
+    for i, code in enumerate(CLASS_ORDER):
+        spath = SAMPLES_DIR / f"sample_{code}.jpg"
+        with sample_cols[i]:
+            if spath.exists():
+                st.image(str(spath), use_container_width=True)
+                st.caption(f"{code} {SAMPLE_SHORT.get(code, '')}")
+                if st.button("이 사진 분석", key=f"sample_btn_{code}", use_container_width=True):
+                    st.session_state["sample_path"] = str(spath)
+                    st.session_state["run_sample"] = True
+            else:
+                st.caption(f"{code} (샘플 준비중)")
+
+    st.html("<br>")
+
     left, right = st.columns([1, 1.15], gap="large")
 
     with left:
@@ -55,14 +235,36 @@ with content:
             ["붉어짐", "탈모", "각질", "딱지", "진물", "가려움", "냄새", "발 핥음", "통증"],
         )
 
-        uploaded_file = st.file_uploader(
-            "피부 사진 업로드",
-            type=["jpg", "jpeg", "png"],
+        st.caption(
+            "💡 동물 선택·부위 선택·관찰되는 증상은 AI 이미지 분석 결과에 직접적인 영향을 주지 않습니다. "
+            "분석 후 맞춤 보호자 행동 가이드 작성을 위해 기입해주세요."
         )
 
-        if uploaded_file is not None:
-            image = Image.open(uploaded_file)
-            st.image(image, caption="Uploaded Image", use_container_width=True)
+        # 입력 방식: 파일 업로드 또는 카메라 촬영
+        input_mode = st.radio(
+            "입력 방식",
+            ["파일 업로드", "카메라 촬영"],
+            horizontal=True,
+        )
+
+        if input_mode == "파일 업로드":
+            image_source = st.file_uploader(
+                "피부 사진 업로드",
+                type=["jpg", "jpeg", "png"],
+            )
+        else:
+            image_source = st.camera_input("피부 사진 촬영")
+
+        # 원본 미리보기 (업로드/카메라 우선, 없으면 선택된 샘플)
+        if image_source is not None:
+            preview = Image.open(image_source)
+            st.image(preview, caption="입력 이미지", use_container_width=True)
+        elif st.session_state.get("sample_path"):
+            st.image(
+                st.session_state["sample_path"],
+                caption="선택된 샘플 이미지",
+                use_container_width=True,
+            )
 
         analyze_button = st.button(
             "RUN AI ANALYSIS",
@@ -84,55 +286,73 @@ with content:
 """
         )
 
-        if analyze_button and uploaded_file is not None:
-            risk_level = random.choice(
-                ["정상 가능성 높음", "관찰 필요", "진료 권장", "빠른 진료 권장"]
-            )
-            confidence = random.choice(["높음", "보통", "낮음"])
+        # 분석 대상/트리거 결정 (업로드·카메라 우선, 없으면 선택된 샘플)
+        if image_source is not None:
+            active_source = image_source
+            st.session_state["sample_path"] = None  # 새 업로드 시 이전 샘플 선택 해제
+        else:
+            active_source = st.session_state.get("sample_path")
 
-            if risk_level == "빠른 진료 권장":
-                st.error(f"위험도: {risk_level}")
-            elif risk_level == "진료 권장":
-                st.warning(f"위험도: {risk_level}")
-            elif risk_level == "관찰 필요":
-                st.info(f"위험도: {risk_level}")
-            else:
-                st.success(f"위험도: {risk_level}")
+        do_analyze = analyze_button or st.session_state.pop("run_sample", False)
 
-            st.markdown("### 예측 병변 유형")
+        if do_analyze and active_source is not None:
+            image = Image.open(active_source)
+            result = predict(image)
 
-            candidates = [
-                ("A2 비듬/각질 가능성", 0.42),
-                ("A3 태선화/색소 가능성", 0.31),
-                ("A7 무증상/정상 가능성", 0.18),
-            ]
-
-            for name, score in candidates:
-                st.write(f"**{name}**")
-                st.progress(score)
-                st.caption(f"가능성 점수: {score * 100:.1f}%")
-
-            st.metric("분석 신뢰도", confidence)
-
-            st.markdown("### 보호자 행동 가이드")
-            st.write(
-                """
-                - 증상이 2~3일 이상 지속되면 동물병원 상담을 권장합니다.
-                - 진물, 악취, 출혈, 심한 탈모가 있다면 빠른 진료가 필요할 수 있습니다.
-                - 사람용 연고나 약을 임의로 사용하지 마세요.
-                - 같은 부위를 계속 긁거나 핥는지 관찰하세요.
-                """
-            )
-
-            if animal == "고양이":
+            if not result["available"]:
                 st.warning(
-                    "고양이 데이터는 강아지 데이터보다 상대적으로 적어 일부 병변 유형의 분석 신뢰도가 낮을 수 있습니다."
+                    "현재 학습된 모델이 연결되지 않아 예시(더미) 결과를 표시합니다. "
+                    "모델 파일이 준비되면 자동으로 실제 분석으로 전환됩니다."
                 )
 
-        elif analyze_button and uploaded_file is None:
-            st.warning("분석할 피부 사진을 먼저 업로드해주세요.")
+            # 질환명 대형 표시 + 신뢰도 %
+            metric_left, metric_right = st.columns(2)
+            metric_left.metric(
+                "예측 병변 유형",
+                f"{result['top_label']} {result['top_name']}",
+                help="가장 가능성이 높은 병변 유형입니다.",
+            )
+            metric_right.metric("분석 신뢰도", f"{result['confidence'] * 100:.1f}%")
+
+            # 위험도 게이지
+            st.plotly_chart(risk_gauge(result["risk"]), use_container_width=True)
+
+            # 클래스별 예측 확률 막대
+            st.markdown("### 클래스별 예측 확률")
+            st.plotly_chart(
+                probability_bar_chart(result["probs"]),
+                use_container_width=True,
+            )
+
+            # Grad-CAM: 원본과 히트맵 나란히
+            st.markdown("### Grad-CAM (관심 영역)")
+            cam = gradcam(image)
+            if cam is not None:
+                cam_left, cam_right = st.columns(2)
+                cam_left.image(image, caption="원본", use_container_width=True)
+                cam_right.image(
+                    gradcam_overlay(image, cam),
+                    caption="Grad-CAM",
+                    use_container_width=True,
+                )
+            else:
+                st.info(
+                    "Grad-CAM은 실제 학습 모델이 연결되면 표시됩니다. "
+                    "(현재는 더미 모드)"
+                )
+
+            # 보호자 행동 가이드 (동물·부위·증상·위험도 반영)
+            st.markdown("### 보호자 행동 가이드")
+            for item in build_action_guide(animal, body_part, symptoms, result["risk"]):
+                st.markdown(f"- {item}")
+
+            if animal == "고양이":
+                st.caption("※ 고양이 데이터는 강아지보다 상대적으로 적어 일부 병변 유형의 신뢰도가 낮을 수 있습니다.")
+
+        elif do_analyze and active_source is None:
+            st.warning("분석할 피부 사진을 먼저 업로드·촬영하거나, 위의 샘플 이미지를 선택해주세요.")
         else:
-            st.info("왼쪽에서 분석 정보를 입력하고 이미지를 업로드하면 분석 결과가 표시됩니다.")
+            st.info("왼쪽에서 정보를 입력하고 사진을 업로드하거나, 위의 샘플 이미지를 눌러 분석을 시작하세요.")
 
     st.html(
         """
